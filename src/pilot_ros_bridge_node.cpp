@@ -1,5 +1,5 @@
 /*
- * pilot_ros_bridge.cpp
+ * pilot_ros_bridge_node.cpp
  *
  *  Created on: May 29, 2020
  *      Author: mad
@@ -142,21 +142,21 @@ private:
 int main(int argc, char** argv)
 {
 	// initialize ROS
-	ros::init(argc, argv, "pilot_ros_bridge");
+	ros::init(argc, argv, "pilot_ros_bridge_node");
 
 	ros::NodeHandle nh;
 
 	// initialize VNX
-	vnx::init("pilot_ros_bridge", 0, 0);
+	vnx::init("pilot_ros_bridge_node", 0, 0);
 
 	std::string pilot_node;
 	std::string pilot_config;
-	nh.param("pilot_node", pilot_node, ".pilot_main.sock");
-	nh.param("pilot_config", pilot_config, "config/default/generic/");
+	nh.param<std::string>("pilot_node", pilot_node, ".pilot_main.sock");
+	nh.param<std::string>("pilot_config", pilot_config, "config/default/generic/");
 
 	vnx::read_config_tree(pilot_config);
 
-	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy(vnx::Endpoint::from_url(pilot_node));
+	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(pilot_node));
 	{
 		vnx::Handle<Pilot_ROS_Bridge> module = new Pilot_ROS_Bridge("Pilot_ROS_Bridge");
 		proxy->import_list.push_back(module->input_odometry.second->get_name());

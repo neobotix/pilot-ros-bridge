@@ -1,0 +1,26 @@
+<package>
+  <name>pilot_ros_bridge</name>
+  <version>1.0.0</version>
+  <description>Two-way bridge between PlatformPilot and ROS</description>
+
+  <maintainer email="ros@neobotix.de">Neobotix</maintainer>
+  <license>BSD</license>
+  <url type="website">https://www.neobotix-roboter.de/</url>
+  <author>Max Wittal</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>roscpp</build_depend>
+
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>roscpp</run_depend>
+</package>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- start node -->
+	<node pkg="pilot_ros_bridge" type="pilot_ros_bridge_node" name="pilot_ros_bridge_node" respawn="false" output="screen">
+
+		<param name="pilot_node" type="str" value="10.1.30.10:5555"/>
+
+		<param name="pilot_config" type="str" value="$(find pilot_ros_bridge)/config/default/mp-400/"/>
+	</node>
+
+
+</launch>

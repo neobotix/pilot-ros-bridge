@@ -14,6 +14,7 @@
 #include <vnx/Proxy.h>
 #include <vnx/Config.h>
 #include <vnx/Process.h>
+#include <vnx/Terminal.h>
 #include <pilot/ros/BridgeBase.hxx>
 
 
@@ -83,23 +84,29 @@ protected:
 
 	void handle(std::shared_ptr<const pilot::Odometry> value)
 	{
-		auto out = boost::make_shared<nav_msgs::Odometry>();
-		out->header.stamp = pilot_to_ros_time(value->time);
-		out->header.frame_id = value->parent;
-		out->child_frame_id = value->frame;
-		out->pose.pose.position.x = value->position[0];
-		out->pose.pose.position.y = value->position[1];
-		out->pose.pose.position.z = value->position[2];
-		tf::Quaternion q;
-		pilot_to_ros_matrix_33(value->matrix.get<3, 3>()).getRotation(q);
-		tf::quaternionTFToMsg(q, out->pose.pose.orientation);
-		out->twist.twist.linear.x = value->linear_velocity[0];
-		out->twist.twist.linear.y = value->linear_velocity[1];
-		out->twist.twist.linear.z = value->linear_velocity[2];
-		out->twist.twist.angular.x = value->angular_velocity[0];
-		out->twist.twist.angular.y = value->angular_velocity[1];
-		out->twist.twist.angular.z = value->angular_velocity[2];
-		pub_odometry.publish(out);
+		if(vnx_sample->topic == input_odometry.second)
+		{
+			auto out = boost::make_shared<nav_msgs::Odometry>();
+			out->header.stamp = pilot_to_ros_time(value->time);
+			out->header.frame_id = value->parent;
+			out->child_frame_id = value->frame;
+			out->pose.pose.position.x = value->position[0];
+			out->pose.pose.position.y = value->position[1];
+			out->pose.pose.position.z = value->position[2];
+			tf::Quaternion q;
+			pilot_to_ros_matrix_33(value->matrix.get<3, 3>()).getRotation(q);
+			tf::quaternionTFToMsg(q, out->pose.pose.orientation);
+			out->twist.twist.linear.x = value->linear_velocity[0];
+			out->twist.twist.linear.y = value->linear_velocity[1];
+			out->twist.twist.linear.z = value->linear_velocity[2];
+			out->twist.twist.angular.x = value->angular_velocity[0];
+			out->twist.twist.angular.y = value->angular_velocity[1];
+			out->twist.twist.angular.z = value->angular_velocity[2];
+			pub_odometry.publish(out);
+		}
+		else {
+			handle(std::shared_ptr<const automy::basic::Transform3D>(value));
+		}
 	}
 
 	void handle(std::shared_ptr<const pilot::LaserScan> value)
@@ -111,9 +118,10 @@ protected:
 		out->angle_max = value->max_angle;
 		out->range_min = value->min_range;
 		out->range_max = value->max_range;
-		if(value->points.size()) {
+		if(value->points.size() >= 2) {
 			out->scan_time = (value->points.back().time_offset - value->points.front().time_offset) * 1e-6f;
-			out->time_increment = out->scan_time / value->points.size();
+			out->time_increment = (value->points[1].time_offset - value->points[0].time_offset) * 1e-6f;
+			out->angle_increment = (value->points[1].angle - value->points[0].angle);
 		}
 		out->ranges.resize(value->points.size());
 		out->intensities.resize(value->points.size());
@@ -145,16 +153,22 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "pilot_ros_bridge_node");
 
 	ros::NodeHandle nh;
+	ros::NodeHandle nh_private("~");
 
 	// initialize VNX
 	vnx::init("pilot_ros_bridge_node", 0, 0);
 
 	std::string pilot_node;
 	std::string pilot_config;
-	nh.param<std::string>("pilot_node", pilot_node, ".pilot_main.sock");
-	nh.param<std::string>("pilot_config", pilot_config, "config/default/generic/");
+	nh_private.param<std::string>("pilot_node", pilot_node, ".pilot_main.sock");
+	nh_private.param<std::string>("pilot_config", pilot_config, "config/default/generic/");
 
 	vnx::read_config_tree(pilot_config);
+
+	{
+		vnx::Handle<vnx::Terminal> module = new vnx::Terminal("Terminal");
+		module.start_detached();
+	}
 
 	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(pilot_node));
 	{

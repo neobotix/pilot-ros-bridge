@@ -1,0 +1,18 @@
+package pilot.ros;
+
+module Bridge {
+	
+	pair<string, vnx.TopicPtr> input_odometry;				// [ROS topic => Pilot topic]
+	
+	vector<vnx.TopicPtr> input_tf_msgs;						// pilot topics
+	
+	map<string, vnx.TopicPtr> input_laser_scans;			// [ROS topic => Pilot topic]
+	
+	
+	void handle(automy.basic.Transform3D sample);
+	
+	void handle(pilot.Odometry sample);
+	
+	void handle(pilot.LaserScan sample);
+	
+}

@@ -17,6 +17,8 @@
 #include <vnx/Terminal.h>
 #include <pilot/ros/BridgeBase.hxx>
 
+#include <algorithm>
+
 
 inline
 ros::Time pilot_to_ros_time(const int64_t& time_usec)
@@ -49,18 +51,13 @@ public:
 protected:
 	void main() override
 	{
-		subscribe(input_odometry.second, 100);
-
-		for(auto topic : input_tf_msgs) {
-			subscribe(topic, 100);
+		for(auto topic : export_tf) {
+			subscribe(topic, max_queue_ms_vnx);
 		}
-
-		for(const auto& entry : input_laser_scans) {
-			subscribe(entry.second, 100);
-			pub_laser_scans.emplace(entry.second, nh.advertise<sensor_msgs::LaserScan>(entry.first, 1));
+		for(const auto& entry : export_map) {
+			subscribe(entry.first, max_queue_ms_vnx);
+			publishers.emplace(entry.first, nh.advertise<sensor_msgs::LaserScan>(entry.second, max_publish_queue_ros));
 		}
-
-		pub_odometry = nh.advertise<nav_msgs::Odometry>(input_odometry.first, 1);
 
 		Super::main();
 
@@ -84,29 +81,27 @@ protected:
 
 	void handle(std::shared_ptr<const pilot::Odometry> value)
 	{
-		if(vnx_sample->topic == input_odometry.second)
-		{
-			auto out = boost::make_shared<nav_msgs::Odometry>();
-			out->header.stamp = pilot_to_ros_time(value->time);
-			out->header.frame_id = value->parent;
-			out->child_frame_id = value->frame;
-			out->pose.pose.position.x = value->position[0];
-			out->pose.pose.position.y = value->position[1];
-			out->pose.pose.position.z = value->position[2];
-			tf::Quaternion q;
-			pilot_to_ros_matrix_33(value->matrix.get<3, 3>()).getRotation(q);
-			tf::quaternionTFToMsg(q, out->pose.pose.orientation);
-			out->twist.twist.linear.x = value->linear_velocity[0];
-			out->twist.twist.linear.y = value->linear_velocity[1];
-			out->twist.twist.linear.z = value->linear_velocity[2];
-			out->twist.twist.angular.x = value->angular_velocity[0];
-			out->twist.twist.angular.y = value->angular_velocity[1];
-			out->twist.twist.angular.z = value->angular_velocity[2];
-			pub_odometry.publish(out);
-		}
-		else {
+		if(std::count(export_tf.begin(), export_tf.end(), vnx_sample->topic)) {
 			handle(std::shared_ptr<const automy::basic::Transform3D>(value));
 		}
+
+		auto out = boost::make_shared<nav_msgs::Odometry>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->header.frame_id = value->parent;
+		out->child_frame_id = value->frame;
+		out->pose.pose.position.x = value->position[0];
+		out->pose.pose.position.y = value->position[1];
+		out->pose.pose.position.z = value->position[2];
+		tf::Quaternion q;
+		pilot_to_ros_matrix_33(value->matrix.get<3, 3>()).getRotation(q);
+		tf::quaternionTFToMsg(q, out->pose.pose.orientation);
+		out->twist.twist.linear.x = value->linear_velocity[0];
+		out->twist.twist.linear.y = value->linear_velocity[1];
+		out->twist.twist.linear.z = value->linear_velocity[2];
+		out->twist.twist.angular.x = value->angular_velocity[0];
+		out->twist.twist.angular.y = value->angular_velocity[1];
+		out->twist.twist.angular.z = value->angular_velocity[2];
+		export_publish(out);
 	}
 
 	void handle(std::shared_ptr<const pilot::LaserScan> value)
@@ -129,10 +124,26 @@ protected:
 			out->ranges[i] = value->points[i].distance;
 			out->intensities[i] = value->points[i].intensity;
 		}
-		const auto range = pub_laser_scans.equal_range(vnx_sample->topic);
+		export_publish(out);
+	}
+
+private:
+	template<typename T>
+	void export_publish(boost::shared_ptr<T> sample, vnx::TopicPtr src_topic)
+	{
+		const auto range = publishers.equal_range(src_topic);
 		for(auto iter = range.first; iter != range.second; ++iter) {
-			iter->second.publish(out);
+			iter->second.publish(sample);
 		}
+	}
+
+	template<typename T>
+	void export_publish(boost::shared_ptr<T> sample)
+	{
+		if(!vnx_sample) {
+			throw std::logic_error("!vnx_sample");
+		}
+		export_publish(sample, vnx_sample->topic);
 	}
 
 private:
@@ -140,9 +151,7 @@ private:
 
 	tf::TransformBroadcaster broadcaster;
 
-	ros::Publisher pub_odometry;
-
-	std::multimap<vnx::TopicPtr, ros::Publisher> pub_laser_scans;
+	std::multimap<vnx::TopicPtr, ros::Publisher> publishers;
 
 };
 
@@ -173,12 +182,11 @@ int main(int argc, char** argv)
 	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(pilot_node));
 	{
 		vnx::Handle<Pilot_ROS_Bridge> module = new Pilot_ROS_Bridge("Pilot_ROS_Bridge");
-		proxy->import_list.push_back(module->input_odometry.second->get_name());
-		for(auto topic : module->input_tf_msgs) {
+		for(auto topic : module->export_tf) {
 			proxy->import_list.push_back(topic->get_name());
 		}
-		for(const auto& entry : module->input_laser_scans) {
-			proxy->import_list.push_back(entry.second->get_name());
+		for(const auto& entry : module->export_map) {
+			proxy->import_list.push_back(entry.first->get_name());
 		}
 		module.start_detached();
 	}

@@ -1,3 +1,4 @@
 {
-	"input_odometry": ["/odom", "platform.odometry"]
+	"max_queue_ms_vnx": 100,
+	"max_publish_queue_ros": 1
 }

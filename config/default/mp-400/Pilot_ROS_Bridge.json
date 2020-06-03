@@ -1,9 +1,11 @@
 {
-	"input_tf_msgs": [
+	"export_tf": [
 		"tf.odom.base_link",
 		"tf.base_link.lidar_1"
 	],
-	"input_laser_scans": [
-		["/lidar_1/scan_filtered", "sensors.filtered_scan.lidar_1"]
+	"export_map": [
+		["platform.odometry", "/odom"],
+		["sensors.laser_scan.lidar_1", "/lidar_1/scan"],
+		["sensors.filtered_scan.lidar_1", "/lidar_1/scan_filtered"]
 	]
 }

@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
+	<param name="robot_description" command="$(find xacro)/xacro '$(find neo_mp_400)/robot_model/mp_400/mp_400.urdf.xacro'" />
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
 	<!-- start node -->
 	<node pkg="pilot_ros_bridge" type="pilot_ros_bridge_node" name="pilot_ros_bridge_node" respawn="false" output="screen">
 
@@ -8,6 +11,5 @@
 
 		<param name="pilot_config" type="str" value="$(find pilot_ros_bridge)/config/default/mp-400/"/>
 	</node>
-
 
 </launch>

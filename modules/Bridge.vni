@@ -4,13 +4,15 @@ module Bridge {
 	
 	vector<vnx.TopicPtr> export_tf;							// pilot tf topics to export
 	
-	vector<pair<string, vnx.TopicPtr>> import_map;			// [ROS topic => Pilot topic]
+	vector<pair<pair<string, string>, vnx.TopicPtr>> import_map;	// [[ROS topic, ROS type] => Pilot topic]
 	
-	vector<pair<vnx.TopicPtr, string>> export_map;			// [Pilot topic => ROS topic]
+	vector<pair<vnx.TopicPtr, pair<string, string>>> export_map;	// [Pilot topic => [ROS topic, ROS type]]
 	
 	int max_queue_ms_vnx = 100;
 	
 	int max_publish_queue_ros = 1;
+	
+	int max_subscribe_queue_ros = 1;
 	
 	
 	void handle(automy.basic.Transform3D sample);

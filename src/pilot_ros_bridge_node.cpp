@@ -15,7 +15,9 @@
 #include <vnx/Config.h>
 #include <vnx/Process.h>
 #include <vnx/Terminal.h>
+
 #include <pilot/ros/BridgeBase.hxx>
+#include <pilot/VelocityCmd.hxx>
 
 #include <algorithm>
 
@@ -54,9 +56,53 @@ protected:
 		for(auto topic : export_tf) {
 			subscribe(topic, max_queue_ms_vnx);
 		}
-		for(const auto& entry : export_map) {
-			subscribe(entry.first, max_queue_ms_vnx);
-			publishers.emplace(entry.first, nh.advertise<sensor_msgs::LaserScan>(entry.second, max_publish_queue_ros));
+
+		for(const auto& entry : import_map)
+		{
+			const auto& ros_topic = entry.first.first;
+			const auto& ros_type = entry.first.second;
+			const auto& pilot_topic = entry.second;
+
+			log(INFO) << "Importing '" << ros_topic << "' type '" << ros_type << "' as '" << pilot_topic->get_name() << "'";
+
+			if(!import_subscribers.count(ros_topic))
+			{
+				ros::Subscriber subs;
+				if(ros_type == "geometry_msgs/Twist") {
+					subs = nh.subscribe<geometry_msgs::Twist>(ros_topic, max_subscribe_queue_ros, boost::bind(&Pilot_ROS_Bridge::handle_twist, this, _1, ros_topic));
+				} else {
+					log(ERROR) << "Unsupported ROS type: " << ros_type;
+					continue;
+				}
+				import_subscribers[ros_topic] = subs;
+			}
+			import_topic_map.emplace(ros_topic, pilot_topic);
+		}
+
+		for(const auto& entry : export_map)
+		{
+			const auto& ros_topic = entry.second.first;
+			const auto& ros_type = entry.second.second;
+			const auto& pilot_topic = entry.first;
+
+			log(INFO) << "Exporting '" << pilot_topic->get_name() << "' as '" << ros_topic << "' type '" << ros_type << "'";
+
+			subscribe(pilot_topic, max_queue_ms_vnx);
+
+			if(!export_publishers.count(ros_topic))
+			{
+				ros::Publisher pub;
+				if(ros_type == "sensor_msgs/LaserScan") {
+					pub = nh.advertise<sensor_msgs::LaserScan>(ros_topic, max_publish_queue_ros);
+				} else if(ros_type == "nav_msgs/Odometry") {
+					pub = nh.advertise<nav_msgs::Odometry>(ros_topic, max_publish_queue_ros);
+				} else {
+					log(ERROR) << "Unsupported ROS type: " << ros_type;
+					continue;
+				}
+				export_publishers[ros_topic] = pub;
+			}
+			export_topic_map.emplace(pilot_topic, ros_topic);
 		}
 
 		Super::main();
@@ -127,13 +173,37 @@ protected:
 		export_publish(out);
 	}
 
-private:
-	template<typename T>
-	void export_publish(boost::shared_ptr<T> sample, vnx::TopicPtr src_topic)
+	void handle_twist(const geometry_msgs::Twist::ConstPtr& twist, const std::string& topic_name)
 	{
-		const auto range = publishers.equal_range(src_topic);
-		for(auto iter = range.first; iter != range.second; ++iter) {
-			iter->second.publish(sample);
+		auto out = pilot::VelocityCmd::create();
+		out->time = vnx::get_time_micros();
+		out->linear.x() = twist->linear.x;
+		out->linear.y() = twist->linear.y;
+		out->linear.z() = twist->linear.z;
+		out->angular.x() = twist->angular.x;
+		out->angular.y() = twist->angular.y;
+		out->angular.z() = twist->angular.z;
+		import_publish(out, topic_name);
+	}
+
+private:
+	void import_publish(std::shared_ptr<vnx::Value> sample, const std::string& ros_topic)
+	{
+		const auto range = import_topic_map.equal_range(ros_topic);
+		for(auto entry = range.first; entry != range.second; ++entry) {
+			publish(sample, entry->second);
+		}
+	}
+
+	template<typename T>
+	void export_publish(boost::shared_ptr<T> sample, vnx::TopicPtr pilot_topic)
+	{
+		const auto range = export_topic_map.equal_range(pilot_topic);
+		for(auto entry = range.first; entry != range.second; ++entry) {
+			const auto iter = export_publishers.find(entry->second);
+			if(iter != export_publishers.end()) {
+				iter->second.publish(sample);
+			}
 		}
 	}
 
@@ -151,7 +221,11 @@ private:
 
 	tf::TransformBroadcaster broadcaster;
 
-	std::multimap<vnx::TopicPtr, ros::Publisher> publishers;
+	std::map<std::string, ros::Subscriber> import_subscribers;
+	std::multimap<std::string, vnx::TopicPtr> import_topic_map;
+
+	std::map<std::string, ros::Publisher> export_publishers;
+	std::multimap<vnx::TopicPtr, std::string> export_topic_map;
 
 };
 

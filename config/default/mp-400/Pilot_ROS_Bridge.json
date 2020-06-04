@@ -4,8 +4,11 @@
 		"tf.base_link.lidar_1"
 	],
 	"export_map": [
-		["platform.odometry", "/odom"],
-		["sensors.laser_scan.lidar_1", "/lidar_1/scan"],
-		["sensors.filtered_scan.lidar_1", "/lidar_1/scan_filtered"]
+		["platform.odometry",				["/odom", "nav_msgs/Odometry"]],
+		["sensors.laser_scan.lidar_1",		["/lidar_1/scan", "sensor_msgs/LaserScan"]],
+		["sensors.filtered_scan.lidar_1",	["/lidar_1/scan_filtered", "sensor_msgs/LaserScan"]]
+	],
+	"import_map": [
+		[["/cmd_vel", "geometry_msgs/Twist"],		"platform.velocity_cmd"]
 	]
 }

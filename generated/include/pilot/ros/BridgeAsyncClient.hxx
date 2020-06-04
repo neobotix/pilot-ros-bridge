@@ -6,10 +6,11 @@
 
 #include <vnx/AsyncClient.h>
 #include <automy/basic/Transform3D.hxx>
+#include <pilot/GridMap.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
 #include <vnx/Module.h>
-#include <vnx/TopicPtr.h>
+#include <vnx/TopicPtr.hpp>
 
 
 namespace pilot {

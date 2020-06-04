@@ -6,10 +6,11 @@
 
 #include <pilot/ros/package.hxx>
 #include <automy/basic/Transform3D.hxx>
+#include <pilot/GridMap.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
 #include <vnx/Module.h>
-#include <vnx/TopicPtr.h>
+#include <vnx/TopicPtr.hpp>
 
 
 namespace pilot {
@@ -18,9 +19,12 @@ namespace ros {
 class BridgeBase : public ::vnx::Module {
 public:
 	
-	std::pair<std::string, ::vnx::TopicPtr> input_odometry;
-	std::vector<::vnx::TopicPtr> input_tf_msgs;
-	std::map<std::string, ::vnx::TopicPtr> input_laser_scans;
+	std::vector<::vnx::TopicPtr> export_tf;
+	std::vector<std::pair<std::pair<std::string, std::string>, ::vnx::TopicPtr>> import_map;
+	std::vector<std::pair<::vnx::TopicPtr, std::pair<std::string, std::string>>> export_map;
+	int32_t max_queue_ms_vnx = 100;
+	int32_t max_publish_queue_ros = 1;
+	int32_t max_subscribe_queue_ros = 1;
 	
 	typedef ::vnx::Module Super;
 	
@@ -50,6 +54,8 @@ public:
 protected:
 	virtual void handle(std::shared_ptr<const ::automy::basic::Transform3D> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::automy::basic::Transform3D> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::GridMap> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::pilot::GridMap> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::LaserScan> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::pilot::LaserScan> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::Odometry> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }

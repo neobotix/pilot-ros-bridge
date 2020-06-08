@@ -21,7 +21,7 @@ module Bridge {
 	
 	void handle(pilot.LaserScan sample);
 	
-	void handle(pilot.GridMap sample);
+	void handle(pilot.GridMapData sample);
 	
 	void handle(pilot.kinematics.differential.DriveState sample);
 	

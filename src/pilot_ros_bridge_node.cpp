@@ -7,10 +7,11 @@
 
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
-#include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Joy.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/JointState.h>
+#include <nav_msgs/Odometry.h>
+#include <nav_msgs/OccupancyGrid.h>
 
 #include <vnx/Proxy.h>
 #include <vnx/Config.h>
@@ -19,6 +20,7 @@
 
 #include <pilot/ros/BridgeBase.hxx>
 #include <pilot/VelocityCmd.hxx>
+#include <pilot/GridMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 
 #include <algorithm>
@@ -96,10 +98,12 @@ protected:
 				ros::Publisher pub;
 				if(ros_type == "sensor_msgs/LaserScan") {
 					pub = nh.advertise<sensor_msgs::LaserScan>(ros_topic, max_publish_queue_ros);
-				} else if(ros_type == "nav_msgs/Odometry") {
-					pub = nh.advertise<nav_msgs::Odometry>(ros_topic, max_publish_queue_ros);
 				} else if(ros_type == "sensor_msgs/JointState") {
 					pub = nh.advertise<sensor_msgs::JointState>(ros_topic, max_publish_queue_ros);
+				} else if(ros_type == "nav_msgs/Odometry") {
+					pub = nh.advertise<nav_msgs::Odometry>(ros_topic, max_publish_queue_ros);
+				} else if(ros_type == "nav_msgs/OccupancyGrid") {
+					pub = nh.advertise<nav_msgs::OccupancyGrid>(ros_topic, max_publish_queue_ros);
 				} else {
 					log(ERROR) << "Unsupported ROS type: " << ros_type;
 					continue;
@@ -129,6 +133,29 @@ protected:
 		broadcaster.sendTransform(out);
 	}
 
+	void handle(std::shared_ptr<const pilot::LaserScan> value)
+	{
+		auto out = boost::make_shared<sensor_msgs::LaserScan>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->header.frame_id = value->frame;
+		out->angle_min = value->min_angle;
+		out->angle_max = value->max_angle;
+		out->range_min = value->min_range;
+		out->range_max = value->max_range;
+		if(value->points.size() >= 2) {
+			out->scan_time = (value->points.back().time_offset - value->points.front().time_offset) * 1e-6f;
+			out->time_increment = (value->points[1].time_offset - value->points[0].time_offset) * 1e-6f;
+			out->angle_increment = (value->points[1].angle - value->points[0].angle);
+		}
+		out->ranges.resize(value->points.size());
+		out->intensities.resize(value->points.size());
+		for(size_t i = 0; i < value->points.size(); ++i) {
+			out->ranges[i] = value->points[i].distance;
+			out->intensities[i] = value->points[i].intensity;
+		}
+		export_publish(out);
+	}
+
 	void handle(std::shared_ptr<const pilot::Odometry> value)
 	{
 		if(std::count(export_tf.begin(), export_tf.end(), vnx_sample->topic)) {
@@ -154,25 +181,24 @@ protected:
 		export_publish(out);
 	}
 
-	void handle(std::shared_ptr<const pilot::LaserScan> value)
+	void handle(std::shared_ptr<const pilot::GridMapData> value)
 	{
-		auto out = boost::make_shared<sensor_msgs::LaserScan>();
+		auto out = boost::make_shared<nav_msgs::OccupancyGrid>();
 		out->header.stamp = pilot_to_ros_time(value->time);
-		out->header.frame_id = value->frame;
-		out->angle_min = value->min_angle;
-		out->angle_max = value->max_angle;
-		out->range_min = value->min_range;
-		out->range_max = value->max_range;
-		if(value->points.size() >= 2) {
-			out->scan_time = (value->points.back().time_offset - value->points.front().time_offset) * 1e-6f;
-			out->time_increment = (value->points[1].time_offset - value->points[0].time_offset) * 1e-6f;
-			out->angle_increment = (value->points[1].angle - value->points[0].angle);
-		}
-		out->ranges.resize(value->points.size());
-		out->intensities.resize(value->points.size());
-		for(size_t i = 0; i < value->points.size(); ++i) {
-			out->ranges[i] = value->points[i].distance;
-			out->intensities[i] = value->points[i].intensity;
+		out->info.resolution = value->scale;
+		out->info.width = value->occupancy.width();
+		out->info.height = value->occupancy.height();
+		out->info.origin.position.x = value->origin.x();
+		out->info.origin.position.y = value->origin.y();
+		tf::quaternionTFToMsg(tf::createQuaternionFromYaw(0), out->info.origin.orientation);
+		out->data.resize(value->occupancy.get_size());
+		for(size_t i = 0; i < out->data.size(); ++i) {
+			const auto pix = value->occupancy[i];
+			if(pix == 255) {
+				out->data[i] = -1;
+			} else {
+				out->data[i] = pix;
+			}
 		}
 		export_publish(out);
 	}

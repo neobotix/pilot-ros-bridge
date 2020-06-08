@@ -6,7 +6,7 @@
 
 #include <pilot/ros/package.hxx>
 #include <automy/basic/Transform3D.hxx>
-#include <pilot/GridMap.hxx>
+#include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
@@ -55,8 +55,8 @@ public:
 protected:
 	virtual void handle(std::shared_ptr<const ::automy::basic::Transform3D> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::automy::basic::Transform3D> _value) {}
-	virtual void handle(std::shared_ptr<const ::pilot::GridMap> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
-	virtual void handle(std::shared_ptr<const ::pilot::GridMap> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::GridMapData> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::pilot::GridMapData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::LaserScan> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::pilot::LaserScan> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::Odometry> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
@@ -65,9 +65,7 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
-	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;
-	
-private:
+	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;
 	
 };
 

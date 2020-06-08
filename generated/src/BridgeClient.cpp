@@ -5,7 +5,7 @@
 #include <pilot/ros/package.hxx>
 #include <pilot/ros/BridgeClient.hxx>
 #include <automy/basic/Transform3D.hxx>
-#include <pilot/GridMap.hxx>
+#include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>

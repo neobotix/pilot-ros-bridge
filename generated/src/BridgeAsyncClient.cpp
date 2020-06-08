@@ -5,7 +5,7 @@
 #include <pilot/ros/package.hxx>
 #include <pilot/ros/BridgeAsyncClient.hxx>
 #include <automy/basic/Transform3D.hxx>
-#include <pilot/GridMap.hxx>
+#include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
@@ -37,7 +37,7 @@ void BridgeAsyncClient::vnx_purge_request(uint64_t _request_id) {
 
 void BridgeAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {
 	{
-		throw std::runtime_error("unknown return value");
+		throw std::runtime_error("BridgeAsyncClient: unknown return type");
 	}
 }
 

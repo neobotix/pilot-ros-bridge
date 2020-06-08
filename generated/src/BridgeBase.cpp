@@ -6,7 +6,7 @@
 #include <pilot/ros/BridgeBase.hxx>
 #include <vnx/NoSuchMethod.hxx>
 #include <automy/basic/Transform3D.hxx>
-#include <pilot/GridMap.hxx>
+#include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
@@ -192,8 +192,8 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 		if(_value) {
 			handle(_value, _sample);
 		}
-	} else if(_type_hash == 0xb24d402780d8cd4ull) {
-		auto _value = std::dynamic_pointer_cast<const ::pilot::GridMap>(_sample->value);
+	} else if(_type_hash == 0xf18f0311672bb286ull) {
+		auto _value = std::dynamic_pointer_cast<const ::pilot::GridMapData>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
 		}
@@ -215,10 +215,10 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 	}
 }
 
-std::shared_ptr<vnx::Value> BridgeBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) {
+std::shared_ptr<vnx::Value> BridgeBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
-	_ex->method = _value->get_type_name();
+	_ex->method = _method->get_type_name();
 	return _ex;
 }
 

@@ -10,6 +10,7 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Joy.h>
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/JointState.h>
 
 #include <vnx/Proxy.h>
 #include <vnx/Config.h>
@@ -18,6 +19,7 @@
 
 #include <pilot/ros/BridgeBase.hxx>
 #include <pilot/VelocityCmd.hxx>
+#include <pilot/kinematics/differential/DriveState.hxx>
 
 #include <algorithm>
 
@@ -96,6 +98,8 @@ protected:
 					pub = nh.advertise<sensor_msgs::LaserScan>(ros_topic, max_publish_queue_ros);
 				} else if(ros_type == "nav_msgs/Odometry") {
 					pub = nh.advertise<nav_msgs::Odometry>(ros_topic, max_publish_queue_ros);
+				} else if(ros_type == "sensor_msgs/JointState") {
+					pub = nh.advertise<sensor_msgs::JointState>(ros_topic, max_publish_queue_ros);
 				} else {
 					log(ERROR) << "Unsupported ROS type: " << ros_type;
 					continue;
@@ -169,6 +173,27 @@ protected:
 		for(size_t i = 0; i < value->points.size(); ++i) {
 			out->ranges[i] = value->points[i].distance;
 			out->intensities[i] = value->points[i].intensity;
+		}
+		export_publish(out);
+	}
+
+	void handle(std::shared_ptr<const pilot::kinematics::differential::DriveState> value)
+	{
+		auto out = boost::make_shared<sensor_msgs::JointState>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->name.resize(2);
+		out->position.resize(2);
+		out->velocity.resize(2);
+		out->name[0] = "wheel_front_left_joint";
+		out->name[1] = "wheel_front_right_joint";
+		out->position[0] = value->position.left;
+		out->position[1] = value->position.right;
+		out->velocity[0] = value->velocity.left;
+		out->velocity[1] = value->velocity.right;
+		if(value->has_torque) {
+			out->effort.resize(2);
+			out->effort[0] = value->torque.left;
+			out->effort[1] = value->torque.right;
 		}
 		export_publish(out);
 	}

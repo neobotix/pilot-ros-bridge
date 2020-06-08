@@ -58,7 +58,7 @@ add_executable(pilot_ros_bridge_node src/pilot_ros_bridge_node.cpp)
 
 add_dependencies(pilot_ros_bridge_node ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(pilot_ros_bridge_node pilot_ros_bridge pilot_core vnx_base ${catkin_LIBRARIES})
+target_link_libraries(pilot_ros_bridge_node pilot_ros_bridge pilot_kinematics_differential pilot_kinematics pilot_core vnx_base ${catkin_LIBRARIES})
 
 
 #############

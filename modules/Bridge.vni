@@ -23,4 +23,6 @@ module Bridge {
 	
 	void handle(pilot.GridMap sample);
 	
+	void handle(pilot.kinematics.differential.DriveState sample);
+	
 }

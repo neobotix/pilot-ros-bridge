@@ -9,6 +9,7 @@
 #include <pilot/GridMap.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
+#include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 
@@ -88,6 +89,7 @@ void BridgeBase::read(std::istream& _in) {
 
 vnx::Object BridgeBase::to_object() const {
 	vnx::Object _object;
+	_object["__type"] = "pilot.ros.Bridge";
 	_object["export_tf"] = export_tf;
 	_object["import_map"] = import_map;
 	_object["export_map"] = export_map;
@@ -202,6 +204,11 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 		}
 	} else if(_type_hash == 0xcecf75b564f86511ull) {
 		auto _value = std::dynamic_pointer_cast<const ::pilot::Odometry>(_sample->value);
+		if(_value) {
+			handle(_value, _sample);
+		}
+	} else if(_type_hash == 0x954b1e7cfbb6b85ull) {
+		auto _value = std::dynamic_pointer_cast<const ::pilot::kinematics::differential::DriveState>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
 		}

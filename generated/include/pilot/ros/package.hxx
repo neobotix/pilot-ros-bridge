@@ -8,6 +8,7 @@
 
 #include <automy/basic/package.hxx>
 #include <pilot/package.hxx>
+#include <pilot/kinematics/differential/package.hxx>
 #include <vnx/package.hxx>
 
 

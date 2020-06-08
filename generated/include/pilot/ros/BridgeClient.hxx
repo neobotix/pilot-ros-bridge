@@ -9,6 +9,7 @@
 #include <pilot/GridMap.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
+#include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 

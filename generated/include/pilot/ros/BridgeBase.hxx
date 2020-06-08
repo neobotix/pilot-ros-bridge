@@ -9,6 +9,7 @@
 #include <pilot/GridMap.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
+#include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 
@@ -60,6 +61,8 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::LaserScan> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::Odometry> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::pilot::Odometry> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _value, const vnx::request_id_t& _request_id) override;

@@ -9,6 +9,7 @@
 #include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
+#include <pilot/Pose2D.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
@@ -204,6 +205,11 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 		}
 	} else if(_type_hash == 0xcecf75b564f86511ull) {
 		auto _value = std::dynamic_pointer_cast<const ::pilot::Odometry>(_sample->value);
+		if(_value) {
+			handle(_value, _sample);
+		}
+	} else if(_type_hash == 0x582f1fd83769573full) {
+		auto _value = std::dynamic_pointer_cast<const ::pilot::Pose2D>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
 		}

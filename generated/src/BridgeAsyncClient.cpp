@@ -8,6 +8,7 @@
 #include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
+#include <pilot/Pose2D.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
@@ -32,7 +33,7 @@ std::vector<uint64_t> BridgeAsyncClient::vnx_get_pending_ids() const {
 	return _list;
 }
 
-void BridgeAsyncClient::vnx_purge_request(uint64_t _request_id) {
+void BridgeAsyncClient::vnx_purge_request(uint64_t _request_id, const std::exception& _ex) {
 }
 
 void BridgeAsyncClient::vnx_callback_switch(uint64_t _request_id, std::shared_ptr<const vnx::Value> _value) {

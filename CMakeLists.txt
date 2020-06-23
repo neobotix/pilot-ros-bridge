@@ -52,7 +52,17 @@ add_library(pilot_ros_bridge SHARED
 	${GENERATED_SOURCE_FILES}
 )
 
-include_directories(include generated/include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(
+	include
+	generated/include
+	/opt/neobotix/pilot-core/include
+	${Boost_INCLUDE_DIRS}
+	${catkin_INCLUDE_DIRS}
+)
+
+link_directories(
+	/opt/neobotix/pilot-core/lib
+)
 
 add_executable(pilot_ros_bridge_node src/pilot_ros_bridge_node.cpp)
 

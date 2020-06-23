@@ -11,12 +11,12 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 find_package(catkin REQUIRED COMPONENTS
- nav_msgs
- roscpp
- tf 
- std_msgs
- sensor_msgs
- trajectory_msgs
+	 nav_msgs
+	 roscpp
+	 tf
+	 std_msgs
+	 sensor_msgs
+	 trajectory_msgs
  )
 
 #######################################

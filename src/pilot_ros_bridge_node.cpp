@@ -313,6 +313,9 @@ int main(int argc, char** argv)
 		for(const auto& entry : module->export_map) {
 			proxy->import_list.push_back(entry.first->get_name());
 		}
+		for(const auto& entry : module->import_map) {
+			proxy->export_list.push_back(entry.second->get_name());
+		}
 		module.start_detached();
 	}
 	proxy.start_detached();

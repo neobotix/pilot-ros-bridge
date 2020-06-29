@@ -103,7 +103,7 @@ protected:
 				} else if(ros_type == "nav_msgs/Odometry") {
 					pub = nh.advertise<nav_msgs::Odometry>(ros_topic, max_publish_queue_ros);
 				} else if(ros_type == "nav_msgs/OccupancyGrid") {
-					pub = nh.advertise<nav_msgs::OccupancyGrid>(ros_topic, max_publish_queue_ros);
+					pub = nh.advertise<nav_msgs::OccupancyGrid>(ros_topic, 1);
 				} else {
 					log(ERROR) << "Unsupported ROS type: " << ros_type;
 					continue;

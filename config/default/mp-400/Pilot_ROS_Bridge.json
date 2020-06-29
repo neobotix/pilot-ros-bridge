@@ -1,5 +1,6 @@
 {
 	"export_tf": [
+		"tf.map.odom",
 		"tf.odom.base_link",
 		"tf.base_link.lidar_1"
 	],
@@ -9,6 +10,7 @@
 		["sensors.filtered_scan.lidar_1",	["/lidar_1/scan_filtered", "sensor_msgs/LaserScan"]],
 		["kinematics.drive_state", 			["/drives/joint_states", "sensor_msgs/JointState"]],
 		["navigation.map", 					["/map", "nav_msgs/OccupancyGrid"]],
+		["visual.map_tile", 				["/map_tile", "nav_msgs/OccupancyGrid"]]
 	],
 	"import_map": [
 		[["/cmd_vel", "geometry_msgs/Twist"],		"platform.velocity_cmd"]

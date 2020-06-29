@@ -190,7 +190,7 @@ protected:
 		out->info.height = value->occupancy.height();
 		out->info.origin.position.x = value->origin.x();
 		out->info.origin.position.y = value->origin.y();
-		tf::quaternionTFToMsg(tf::createQuaternionFromYaw(0), out->info.origin.orientation);
+		tf::quaternionTFToMsg(tf::createQuaternionFromYaw(value->orientation), out->info.origin.orientation);
 		out->data.resize(value->occupancy.get_size());
 		for(size_t i = 0; i < out->data.size(); ++i) {
 			const auto pix = value->occupancy[i];

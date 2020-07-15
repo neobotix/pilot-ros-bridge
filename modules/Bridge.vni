@@ -17,6 +17,10 @@ module Bridge {
 	
 	void handle(automy.basic.Transform3D sample);
 	
+	void handle(pilot.Pose2D sample);
+	
+	void handle(pilot.PoseArray2D sample);
+	
 	void handle(pilot.Odometry sample);
 	
 	void handle(pilot.LaserScan sample);

@@ -12,6 +12,8 @@
 #include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 #include <vnx/Proxy.h>
 #include <vnx/Config.h>
@@ -19,6 +21,7 @@
 #include <vnx/Terminal.h>
 
 #include <pilot/ros/BridgeBase.hxx>
+#include <pilot/Pose2D.hxx>
 #include <pilot/VelocityCmd.hxx>
 #include <pilot/GridMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
@@ -74,6 +77,8 @@ protected:
 				ros::Subscriber subs;
 				if(ros_type == "geometry_msgs/Twist") {
 					subs = nh.subscribe<geometry_msgs::Twist>(ros_topic, max_subscribe_queue_ros, boost::bind(&Pilot_ROS_Bridge::handle_twist, this, _1, ros_topic));
+				} else if(ros_type == "geometry_msgs/PoseWithCovarianceStamped") {
+					subs = nh.subscribe<geometry_msgs::PoseWithCovarianceStamped>(ros_topic, max_subscribe_queue_ros, boost::bind(&Pilot_ROS_Bridge::handle_pose, this, _1, ros_topic));
 				} else {
 					log(ERROR) << "Unsupported ROS type: " << ros_type;
 					continue;
@@ -104,6 +109,10 @@ protected:
 					pub = nh.advertise<nav_msgs::Odometry>(ros_topic, max_publish_queue_ros);
 				} else if(ros_type == "nav_msgs/OccupancyGrid") {
 					pub = nh.advertise<nav_msgs::OccupancyGrid>(ros_topic, 1);
+				} else if(ros_type == "geometry_msgs/PoseArray") {
+					pub = nh.advertise<geometry_msgs::PoseArray>(ros_topic, max_publish_queue_ros);
+				} else if(ros_type == "geometry_msgs/PoseWithCovarianceStamped") {
+					pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>(ros_topic, max_publish_queue_ros);
 				} else {
 					log(ERROR) << "Unsupported ROS type: " << ros_type;
 					continue;
@@ -118,7 +127,7 @@ protected:
 		ros::shutdown();
 	}
 
-	void handle(std::shared_ptr<const automy::basic::Transform3D> value)
+	void handle(std::shared_ptr<const automy::basic::Transform3D> value) override
 	{
 		geometry_msgs::TransformStamped out;
 		out.header.stamp = pilot_to_ros_time(value->time);
@@ -133,7 +142,7 @@ protected:
 		broadcaster.sendTransform(out);
 	}
 
-	void handle(std::shared_ptr<const pilot::LaserScan> value)
+	void handle(std::shared_ptr<const pilot::LaserScan> value) override
 	{
 		auto out = boost::make_shared<sensor_msgs::LaserScan>();
 		out->header.stamp = pilot_to_ros_time(value->time);
@@ -156,7 +165,37 @@ protected:
 		export_publish(out);
 	}
 
-	void handle(std::shared_ptr<const pilot::Odometry> value)
+	void handle(std::shared_ptr<const pilot::Pose2D> value) override
+	{
+		if(std::count(export_tf.begin(), export_tf.end(), vnx_sample->topic)) {
+			handle(std::shared_ptr<const automy::basic::Transform3D>(value));
+		}
+
+		auto out = boost::make_shared<geometry_msgs::PoseWithCovarianceStamped>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->header.frame_id = value->frame;
+		out->pose.pose.position.x = value->pose.x();
+		out->pose.pose.position.y = value->pose.y();
+		tf::quaternionTFToMsg(tf::createQuaternionFromYaw(value->pose.z()), out->pose.pose.orientation);
+		export_publish(out);
+	}
+
+	void handle(std::shared_ptr<const pilot::PoseArray2D> value) override
+	{
+		auto out = boost::make_shared<geometry_msgs::PoseArray>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->header.frame_id = value->frame;
+		for(const auto& pose : value->poses) {
+			geometry_msgs::Pose tmp;
+			tmp.position.x = pose.x();
+			tmp.position.y = pose.y();
+			tf::quaternionTFToMsg(tf::createQuaternionFromYaw(pose.z()), tmp.orientation);
+			out->poses.push_back(tmp);
+		}
+		export_publish(out);
+	}
+
+	void handle(std::shared_ptr<const pilot::Odometry> value) override
 	{
 		if(std::count(export_tf.begin(), export_tf.end(), vnx_sample->topic)) {
 			handle(std::shared_ptr<const automy::basic::Transform3D>(value));
@@ -181,7 +220,7 @@ protected:
 		export_publish(out);
 	}
 
-	void handle(std::shared_ptr<const pilot::GridMapData> value)
+	void handle(std::shared_ptr<const pilot::GridMapData> value) override
 	{
 		auto out = boost::make_shared<nav_msgs::OccupancyGrid>();
 		out->header.stamp = pilot_to_ros_time(value->time);
@@ -203,7 +242,7 @@ protected:
 		export_publish(out);
 	}
 
-	void handle(std::shared_ptr<const pilot::kinematics::differential::DriveState> value)
+	void handle(std::shared_ptr<const pilot::kinematics::differential::DriveState> value) override
 	{
 		auto out = boost::make_shared<sensor_msgs::JointState>();
 		out->header.stamp = pilot_to_ros_time(value->time);
@@ -234,6 +273,21 @@ protected:
 		out->angular.x() = twist->angular.x;
 		out->angular.y() = twist->angular.y;
 		out->angular.z() = twist->angular.z;
+		import_publish(out, topic_name);
+	}
+
+	void handle_pose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose, const std::string& topic_name)
+	{
+		tf::Transform tmp;
+		tf::poseMsgToTF(pose->pose.pose, tmp);
+
+		auto out = pilot::Pose2D::create();
+		out->time = vnx::get_time_micros();
+		out->frame = pose->header.frame_id;
+		out->pose.x() = pose->pose.pose.position.x;
+		out->pose.y() = pose->pose.pose.position.y;
+		out->pose.z() = tf::getYaw(pose->pose.pose.orientation);
+		out->update();
 		import_publish(out, topic_name);
 	}
 
@@ -305,6 +359,7 @@ int main(int argc, char** argv)
 	}
 
 	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(pilot_node));
+	proxy->time_sync = true;
 	{
 		vnx::Handle<Pilot_ROS_Bridge> module = new Pilot_ROS_Bridge("Pilot_ROS_Bridge");
 		for(auto topic : module->export_tf) {

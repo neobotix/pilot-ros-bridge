@@ -12,8 +12,11 @@
 #include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <vnx/Proxy.h>
 #include <vnx/Config.h>
@@ -24,6 +27,8 @@
 #include <pilot/Pose2D.hxx>
 #include <pilot/VelocityCmd.hxx>
 #include <pilot/GridMapData.hxx>
+#include <pilot/RoadMapData.hxx>
+#include <pilot/MapStation.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 
 #include <algorithm>
@@ -90,36 +95,13 @@ protected:
 
 		for(const auto& entry : export_map)
 		{
-			const auto& ros_topic = entry.second.first;
-			const auto& ros_type = entry.second.second;
+			const auto& ros_topic = entry.second;
 			const auto& pilot_topic = entry.first;
 
-			log(INFO) << "Exporting '" << pilot_topic->get_name() << "' as '" << ros_topic << "' type '" << ros_type << "'";
-
 			subscribe(pilot_topic, max_queue_ms_vnx);
-
-			if(!export_publishers.count(ros_topic))
-			{
-				ros::Publisher pub;
-				if(ros_type == "sensor_msgs/LaserScan") {
-					pub = nh.advertise<sensor_msgs::LaserScan>(ros_topic, max_publish_queue_ros);
-				} else if(ros_type == "sensor_msgs/JointState") {
-					pub = nh.advertise<sensor_msgs::JointState>(ros_topic, max_publish_queue_ros);
-				} else if(ros_type == "nav_msgs/Odometry") {
-					pub = nh.advertise<nav_msgs::Odometry>(ros_topic, max_publish_queue_ros);
-				} else if(ros_type == "nav_msgs/OccupancyGrid") {
-					pub = nh.advertise<nav_msgs::OccupancyGrid>(ros_topic, 1);
-				} else if(ros_type == "geometry_msgs/PoseArray") {
-					pub = nh.advertise<geometry_msgs::PoseArray>(ros_topic, max_publish_queue_ros);
-				} else if(ros_type == "geometry_msgs/PoseWithCovarianceStamped") {
-					pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>(ros_topic, max_publish_queue_ros);
-				} else {
-					log(ERROR) << "Unsupported ROS type: " << ros_type;
-					continue;
-				}
-				export_publishers[ros_topic] = pub;
-			}
 			export_topic_map.emplace(pilot_topic, ros_topic);
+
+			log(INFO) << "Exporting '" << pilot_topic->get_name() << "' as '" << ros_topic << "'";
 		}
 
 		Super::main();
@@ -220,6 +202,22 @@ protected:
 		export_publish(out);
 	}
 
+	void handle(std::shared_ptr<const pilot::Path2D> value) override
+	{
+		nav_msgs::Path::Ptr out = boost::make_shared<nav_msgs::Path>();
+		out->header.frame_id = value->frame;
+		out->header.stamp = pilot_to_ros_time(value->time);
+		for(auto point : value->points) {
+			geometry_msgs::PoseStamped tmp;
+			tmp.header = out->header;
+			tmp.pose.position.x = point->pose.x();
+			tmp.pose.position.y = point->pose.y();
+			tf::quaternionTFToMsg(tf::createQuaternionFromYaw(point->pose.z()), tmp.pose.orientation);
+			out->poses.push_back(tmp);
+		}
+		export_publish(out);
+	}
+
 	void handle(std::shared_ptr<const pilot::GridMapData> value) override
 	{
 		auto out = boost::make_shared<nav_msgs::OccupancyGrid>();
@@ -240,6 +238,50 @@ protected:
 			}
 		}
 		export_publish(out);
+	}
+
+	void handle(std::shared_ptr<const pilot::RoadMapData> value) override
+	{
+		auto stations = boost::make_shared<geometry_msgs::PoseArray>();
+		auto nodes = boost::make_shared<visualization_msgs::MarkerArray>();
+		auto markers = boost::make_shared<visualization_msgs::MarkerArray>();
+		stations->header.frame_id = "map";
+		for(auto node : value->nodes) {
+			auto station = std::dynamic_pointer_cast<const pilot::MapStation>(node);
+			if(station) {
+				geometry_msgs::Pose tmp;
+				tmp.position.x = station->position.x();
+				tmp.position.y = station->position.y();
+				tf::quaternionTFToMsg(tf::createQuaternionFromYaw(station->orientation), tmp.orientation);
+				stations->poses.push_back(tmp);
+				{
+					visualization_msgs::Marker marker;
+					marker.header.frame_id = "map";
+					marker.ns = vnx_sample->topic->get_name();
+					marker.id = node->id;
+					marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+					marker.pose = tmp;
+					marker.text = station->name;
+					marker.scale.x = 0.25; marker.scale.y = 0.25; marker.scale.z = 0.25;
+					marker.color.r = 1; marker.color.g = 1; marker.color.b = 1; marker.color.a = 1;
+					markers->markers.push_back(marker);
+				}
+			} else {
+				visualization_msgs::Marker marker;
+				marker.header.frame_id = "map";
+				marker.ns = vnx_sample->topic->get_name();
+				marker.id = node->id;
+				marker.type = visualization_msgs::Marker::SPHERE;
+				marker.pose.position.x = node->position.x();
+				marker.pose.position.y = node->position.y();
+				marker.scale.x = 0.25; marker.scale.y = 0.25; marker.scale.z = 0.25;
+				marker.color.r = 1; marker.color.g = 0; marker.color.b = 0; marker.color.a = 1;
+				nodes->markers.push_back(marker);
+			}
+		}
+		export_publish(nodes, "nodes");
+		export_publish(stations, "stations");
+		export_publish(markers, "markers");
 	}
 
 	void handle(std::shared_ptr<const pilot::kinematics::differential::DriveState> value) override
@@ -301,24 +343,26 @@ private:
 	}
 
 	template<typename T>
-	void export_publish(boost::shared_ptr<T> sample, vnx::TopicPtr pilot_topic)
+	void export_publish(boost::shared_ptr<T> sample, vnx::TopicPtr pilot_topic, const std::string& sub_topic)
 	{
 		const auto range = export_topic_map.equal_range(pilot_topic);
-		for(auto entry = range.first; entry != range.second; ++entry) {
-			const auto iter = export_publishers.find(entry->second);
-			if(iter != export_publishers.end()) {
-				iter->second.publish(sample);
+		for(auto entry = range.first; entry != range.second; ++entry)
+		{
+			const std::string ros_topic = entry->second + (sub_topic.empty() ? "" : "/") + sub_topic;
+			if(!export_publishers.count(ros_topic)) {
+				export_publishers[ros_topic] = nh.advertise<T>(ros_topic, max_publish_queue_ros);
 			}
+			export_publishers[ros_topic].publish(sample);
 		}
 	}
 
 	template<typename T>
-	void export_publish(boost::shared_ptr<T> sample)
+	void export_publish(boost::shared_ptr<T> sample, const std::string& sub_topic = std::string())
 	{
 		if(!vnx_sample) {
 			throw std::logic_error("!vnx_sample");
 		}
-		export_publish(sample, vnx_sample->topic);
+		export_publish(sample, vnx_sample->topic, sub_topic);
 	}
 
 private:

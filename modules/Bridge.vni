@@ -6,7 +6,7 @@ module Bridge {
 	
 	vector<pair<pair<string, string>, vnx.TopicPtr>> import_map;	// [[ROS topic, ROS type] => Pilot topic]
 	
-	vector<pair<vnx.TopicPtr, pair<string, string>>> export_map;	// [Pilot topic => [ROS topic, ROS type]]
+	vector<pair<vnx.TopicPtr, string>> export_map;					// [Pilot topic => ROS topic]
 	
 	int max_queue_ms_vnx = 100;
 	
@@ -17,6 +17,8 @@ module Bridge {
 	
 	void handle(automy.basic.Transform3D sample);
 	
+	void handle(pilot.Path2D sample);
+	
 	void handle(pilot.Pose2D sample);
 	
 	void handle(pilot.PoseArray2D sample);
@@ -26,6 +28,8 @@ module Bridge {
 	void handle(pilot.LaserScan sample);
 	
 	void handle(pilot.GridMapData sample);
+	
+	void handle(pilot.RoadMapData sample);
 	
 	void handle(pilot.kinematics.differential.DriveState sample);
 	

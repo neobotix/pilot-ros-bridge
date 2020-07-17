@@ -242,10 +242,26 @@ protected:
 
 	void handle(std::shared_ptr<const pilot::RoadMapData> value) override
 	{
+		auto nodes = boost::make_shared<visualization_msgs::Marker>();
+		nodes->header.frame_id = "map";
+		nodes->ns = vnx_sample->topic->get_name() + ".nodes";
+		nodes->type = visualization_msgs::Marker::SPHERE_LIST;
+		nodes->scale.x = 0.05; nodes->scale.y = 0.05; nodes->scale.z = 0.05;
+		nodes->color.r = 0; nodes->color.g = 0; nodes->color.b = 1; nodes->color.a = 1;
+
+		auto segments = boost::make_shared<visualization_msgs::Marker>();
+		segments->header.frame_id = "map";
+		segments->ns = vnx_sample->topic->get_name() + ".segments";
+		segments->type = visualization_msgs::Marker::LINE_LIST;
+		segments->scale.x = 0.03;
+		segments->color.r = 1; segments->color.g = 0; segments->color.b = 1; segments->color.a = 0.3;
+
 		auto stations = boost::make_shared<geometry_msgs::PoseArray>();
-		auto nodes = boost::make_shared<visualization_msgs::MarkerArray>();
-		auto markers = boost::make_shared<visualization_msgs::MarkerArray>();
 		stations->header.frame_id = "map";
+		auto markers = boost::make_shared<visualization_msgs::MarkerArray>();
+
+		std::map<int, std::shared_ptr<const pilot::MapNode>> node_map;
+
 		for(auto node : value->nodes) {
 			auto station = std::dynamic_pointer_cast<const pilot::MapStation>(node);
 			if(station) {
@@ -257,7 +273,7 @@ protected:
 				{
 					visualization_msgs::Marker marker;
 					marker.header.frame_id = "map";
-					marker.ns = vnx_sample->topic->get_name();
+					marker.ns = vnx_sample->topic->get_name() + ".stations";
 					marker.id = node->id;
 					marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
 					marker.pose = tmp;
@@ -267,19 +283,35 @@ protected:
 					markers->markers.push_back(marker);
 				}
 			} else {
-				visualization_msgs::Marker marker;
-				marker.header.frame_id = "map";
-				marker.ns = vnx_sample->topic->get_name();
-				marker.id = node->id;
-				marker.type = visualization_msgs::Marker::SPHERE;
-				marker.pose.position.x = node->position.x();
-				marker.pose.position.y = node->position.y();
-				marker.scale.x = 0.25; marker.scale.y = 0.25; marker.scale.z = 0.25;
-				marker.color.r = 1; marker.color.g = 0; marker.color.b = 0; marker.color.a = 1;
-				nodes->markers.push_back(marker);
+				geometry_msgs::Point point;
+				point.x = node->position.x();
+				point.y = node->position.y();
+				nodes->points.push_back(point);
+			}
+			node_map[node->id] = node;
+		}
+		for(auto segment : value->segments) {
+			{
+				auto node = node_map[segment->from_node];
+				geometry_msgs::Point point;
+				if(node) {
+					point.x = node->position.x();
+					point.y = node->position.y();
+				}
+				segments->points.push_back(point);
+			}
+			{
+				auto node = node_map[segment->to_node];
+				geometry_msgs::Point point;
+				if(node) {
+					point.x = node->position.x();
+					point.y = node->position.y();
+				}
+				segments->points.push_back(point);
 			}
 		}
 		export_publish(nodes, "nodes");
+		export_publish(segments, "segments");
 		export_publish(stations, "stations");
 		export_publish(markers, "markers");
 	}

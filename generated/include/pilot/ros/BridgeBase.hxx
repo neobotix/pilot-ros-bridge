@@ -9,8 +9,10 @@
 #include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
+#include <pilot/Path2D.hxx>
 #include <pilot/Pose2D.hxx>
 #include <pilot/PoseArray2D.hxx>
+#include <pilot/RoadMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
@@ -24,7 +26,7 @@ public:
 	
 	std::vector<::vnx::TopicPtr> export_tf;
 	std::vector<std::pair<std::pair<std::string, std::string>, ::vnx::TopicPtr>> import_map;
-	std::vector<std::pair<::vnx::TopicPtr, std::pair<std::string, std::string>>> export_map;
+	std::vector<std::pair<::vnx::TopicPtr, std::string>> export_map;
 	int32_t max_queue_ms_vnx = 100;
 	int32_t max_publish_queue_ros = 1;
 	int32_t max_subscribe_queue_ros = 1;
@@ -57,6 +59,8 @@ public:
 protected:
 	virtual void handle(std::shared_ptr<const ::automy::basic::Transform3D> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::automy::basic::Transform3D> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::Path2D> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::pilot::Path2D> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::Pose2D> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::pilot::Pose2D> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::PoseArray2D> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
@@ -67,6 +71,8 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::LaserScan> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::GridMapData> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::pilot::GridMapData> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::RoadMapData> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::pilot::RoadMapData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value) {}
 	

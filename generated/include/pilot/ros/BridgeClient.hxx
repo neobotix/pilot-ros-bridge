@@ -9,8 +9,10 @@
 #include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
+#include <pilot/Path2D.hxx>
 #include <pilot/Pose2D.hxx>
 #include <pilot/PoseArray2D.hxx>
+#include <pilot/RoadMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>

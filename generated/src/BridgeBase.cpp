@@ -8,8 +8,10 @@
 #include <pilot/GridMapData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/Odometry.hxx>
+#include <pilot/Path2D.hxx>
 #include <pilot/Pose2D.hxx>
 #include <pilot/PoseArray2D.hxx>
+#include <pilot/RoadMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
@@ -22,7 +24,7 @@ namespace ros {
 
 
 const vnx::Hash64 BridgeBase::VNX_TYPE_HASH(0x4deabea977d4c59bull);
-const vnx::Hash64 BridgeBase::VNX_CODE_HASH(0xd1e282d5c8bbc39bull);
+const vnx::Hash64 BridgeBase::VNX_CODE_HASH(0x7bc9884a22363c20ull);
 
 BridgeBase::BridgeBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -143,7 +145,7 @@ std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "pilot.ros.Bridge";
 	type_code->type_hash = vnx::Hash64(0x4deabea977d4c59bull);
-	type_code->code_hash = vnx::Hash64(0xd1e282d5c8bbc39bull);
+	type_code->code_hash = vnx::Hash64(0x7bc9884a22363c20ull);
 	type_code->is_native = true;
 	type_code->methods.resize(0);
 	type_code->fields.resize(6);
@@ -163,7 +165,7 @@ std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
 		vnx::TypeField& field = type_code->fields[2];
 		field.is_extended = true;
 		field.name = "export_map";
-		field.code = {12, 23, 2, 4, 6, 12, 5, 23, 2, 4, 5, 32, 32};
+		field.code = {12, 23, 2, 4, 6, 12, 5, 32};
 	}
 	{
 		vnx::TypeField& field = type_code->fields[3];
@@ -210,6 +212,13 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 		}
 	}
 	{
+		auto _value = std::dynamic_pointer_cast<const ::pilot::Path2D>(_sample->value);
+		if(_value) {
+			handle(_value, _sample);
+			return;
+		}
+	}
+	{
 		auto _value = std::dynamic_pointer_cast<const ::pilot::Odometry>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
@@ -225,6 +234,13 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 	}
 	{
 		auto _value = std::dynamic_pointer_cast<const ::pilot::GridMapData>(_sample->value);
+		if(_value) {
+			handle(_value, _sample);
+			return;
+		}
+	}
+	{
+		auto _value = std::dynamic_pointer_cast<const ::pilot::RoadMapData>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
 			return;

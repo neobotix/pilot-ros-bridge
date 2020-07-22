@@ -155,7 +155,7 @@ protected:
 
 		auto out = boost::make_shared<geometry_msgs::PoseWithCovarianceStamped>();
 		out->header.stamp = pilot_to_ros_time(value->time);
-		out->header.frame_id = value->frame;
+		out->header.frame_id = value->parent;
 		out->pose.pose.position.x = value->pose.x();
 		out->pose.pose.position.y = value->pose.y();
 		tf::quaternionTFToMsg(tf::createQuaternionFromYaw(value->pose.z()), out->pose.pose.orientation);
@@ -166,7 +166,7 @@ protected:
 	{
 		auto out = boost::make_shared<geometry_msgs::PoseArray>();
 		out->header.stamp = pilot_to_ros_time(value->time);
-		out->header.frame_id = value->frame;
+		out->header.frame_id = value->parent;
 		for(const auto& pose : value->poses) {
 			geometry_msgs::Pose tmp;
 			tmp.position.x = pose.x();
@@ -243,21 +243,21 @@ protected:
 	void handle(std::shared_ptr<const pilot::RoadMapData> value) override
 	{
 		auto nodes = boost::make_shared<visualization_msgs::Marker>();
-		nodes->header.frame_id = "map";
+		nodes->header.frame_id = map_frame;
 		nodes->ns = vnx_sample->topic->get_name() + ".nodes";
 		nodes->type = visualization_msgs::Marker::SPHERE_LIST;
 		nodes->scale.x = 0.05; nodes->scale.y = 0.05; nodes->scale.z = 0.05;
 		nodes->color.r = 0; nodes->color.g = 0; nodes->color.b = 1; nodes->color.a = 1;
 
 		auto segments = boost::make_shared<visualization_msgs::Marker>();
-		segments->header.frame_id = "map";
+		segments->header.frame_id = map_frame;
 		segments->ns = vnx_sample->topic->get_name() + ".segments";
 		segments->type = visualization_msgs::Marker::LINE_LIST;
 		segments->scale.x = 0.03;
 		segments->color.r = 1; segments->color.g = 0; segments->color.b = 1; segments->color.a = 0.3;
 
 		auto stations = boost::make_shared<geometry_msgs::PoseArray>();
-		stations->header.frame_id = "map";
+		stations->header.frame_id = map_frame;
 		auto markers = boost::make_shared<visualization_msgs::MarkerArray>();
 
 		std::map<int, std::shared_ptr<const pilot::MapNode>> node_map;
@@ -272,7 +272,7 @@ protected:
 				stations->poses.push_back(tmp);
 				{
 					visualization_msgs::Marker marker;
-					marker.header.frame_id = "map";
+					marker.header.frame_id = map_frame;
 					marker.ns = vnx_sample->topic->get_name() + ".stations";
 					marker.id = node->id;
 					marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
@@ -357,7 +357,8 @@ protected:
 
 		auto out = pilot::Pose2D::create();
 		out->time = vnx::get_time_micros();
-		out->frame = pose->header.frame_id;
+		out->frame = base_frame;
+		out->parent = pose->header.frame_id;
 		out->pose.x() = pose->pose.pose.position.x;
 		out->pose.y() = pose->pose.pose.position.y;
 		out->pose.z() = tf::getYaw(pose->pose.pose.orientation);

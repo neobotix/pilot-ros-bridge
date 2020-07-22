@@ -24,17 +24,20 @@ namespace ros {
 
 
 const vnx::Hash64 BridgeBase::VNX_TYPE_HASH(0x4deabea977d4c59bull);
-const vnx::Hash64 BridgeBase::VNX_CODE_HASH(0x7bc9884a22363c20ull);
+const vnx::Hash64 BridgeBase::VNX_CODE_HASH(0x44950c28c464d2aeull);
 
 BridgeBase::BridgeBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
+	vnx::read_config(vnx_name + ".base_frame", base_frame);
 	vnx::read_config(vnx_name + ".export_map", export_map);
 	vnx::read_config(vnx_name + ".export_tf", export_tf);
 	vnx::read_config(vnx_name + ".import_map", import_map);
+	vnx::read_config(vnx_name + ".map_frame", map_frame);
 	vnx::read_config(vnx_name + ".max_publish_queue_ros", max_publish_queue_ros);
 	vnx::read_config(vnx_name + ".max_queue_ms_vnx", max_queue_ms_vnx);
 	vnx::read_config(vnx_name + ".max_subscribe_queue_ros", max_subscribe_queue_ros);
+	vnx::read_config(vnx_name + ".odom_frame", odom_frame);
 }
 
 vnx::Hash64 BridgeBase::get_type_hash() const {
@@ -54,9 +57,12 @@ void BridgeBase::accept(vnx::Visitor& _visitor) const {
 	_visitor.type_field(_type_code->fields[0], 0); vnx::accept(_visitor, export_tf);
 	_visitor.type_field(_type_code->fields[1], 1); vnx::accept(_visitor, import_map);
 	_visitor.type_field(_type_code->fields[2], 2); vnx::accept(_visitor, export_map);
-	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, max_queue_ms_vnx);
-	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, max_publish_queue_ros);
-	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, max_subscribe_queue_ros);
+	_visitor.type_field(_type_code->fields[3], 3); vnx::accept(_visitor, base_frame);
+	_visitor.type_field(_type_code->fields[4], 4); vnx::accept(_visitor, odom_frame);
+	_visitor.type_field(_type_code->fields[5], 5); vnx::accept(_visitor, map_frame);
+	_visitor.type_field(_type_code->fields[6], 6); vnx::accept(_visitor, max_queue_ms_vnx);
+	_visitor.type_field(_type_code->fields[7], 7); vnx::accept(_visitor, max_publish_queue_ros);
+	_visitor.type_field(_type_code->fields[8], 8); vnx::accept(_visitor, max_subscribe_queue_ros);
 	_visitor.type_end(*_type_code);
 }
 
@@ -65,6 +71,9 @@ void BridgeBase::write(std::ostream& _out) const {
 	_out << ", \"export_tf\": "; vnx::write(_out, export_tf);
 	_out << ", \"import_map\": "; vnx::write(_out, import_map);
 	_out << ", \"export_map\": "; vnx::write(_out, export_map);
+	_out << ", \"base_frame\": "; vnx::write(_out, base_frame);
+	_out << ", \"odom_frame\": "; vnx::write(_out, odom_frame);
+	_out << ", \"map_frame\": "; vnx::write(_out, map_frame);
 	_out << ", \"max_queue_ms_vnx\": "; vnx::write(_out, max_queue_ms_vnx);
 	_out << ", \"max_publish_queue_ros\": "; vnx::write(_out, max_publish_queue_ros);
 	_out << ", \"max_subscribe_queue_ros\": "; vnx::write(_out, max_subscribe_queue_ros);
@@ -75,18 +84,24 @@ void BridgeBase::read(std::istream& _in) {
 	std::map<std::string, std::string> _object;
 	vnx::read_object(_in, _object);
 	for(const auto& _entry : _object) {
-		if(_entry.first == "export_map") {
+		if(_entry.first == "base_frame") {
+			vnx::from_string(_entry.second, base_frame);
+		} else if(_entry.first == "export_map") {
 			vnx::from_string(_entry.second, export_map);
 		} else if(_entry.first == "export_tf") {
 			vnx::from_string(_entry.second, export_tf);
 		} else if(_entry.first == "import_map") {
 			vnx::from_string(_entry.second, import_map);
+		} else if(_entry.first == "map_frame") {
+			vnx::from_string(_entry.second, map_frame);
 		} else if(_entry.first == "max_publish_queue_ros") {
 			vnx::from_string(_entry.second, max_publish_queue_ros);
 		} else if(_entry.first == "max_queue_ms_vnx") {
 			vnx::from_string(_entry.second, max_queue_ms_vnx);
 		} else if(_entry.first == "max_subscribe_queue_ros") {
 			vnx::from_string(_entry.second, max_subscribe_queue_ros);
+		} else if(_entry.first == "odom_frame") {
+			vnx::from_string(_entry.second, odom_frame);
 		}
 	}
 }
@@ -97,6 +112,9 @@ vnx::Object BridgeBase::to_object() const {
 	_object["export_tf"] = export_tf;
 	_object["import_map"] = import_map;
 	_object["export_map"] = export_map;
+	_object["base_frame"] = base_frame;
+	_object["odom_frame"] = odom_frame;
+	_object["map_frame"] = map_frame;
 	_object["max_queue_ms_vnx"] = max_queue_ms_vnx;
 	_object["max_publish_queue_ros"] = max_publish_queue_ros;
 	_object["max_subscribe_queue_ros"] = max_subscribe_queue_ros;
@@ -105,18 +123,24 @@ vnx::Object BridgeBase::to_object() const {
 
 void BridgeBase::from_object(const vnx::Object& _object) {
 	for(const auto& _entry : _object.field) {
-		if(_entry.first == "export_map") {
+		if(_entry.first == "base_frame") {
+			_entry.second.to(base_frame);
+		} else if(_entry.first == "export_map") {
 			_entry.second.to(export_map);
 		} else if(_entry.first == "export_tf") {
 			_entry.second.to(export_tf);
 		} else if(_entry.first == "import_map") {
 			_entry.second.to(import_map);
+		} else if(_entry.first == "map_frame") {
+			_entry.second.to(map_frame);
 		} else if(_entry.first == "max_publish_queue_ros") {
 			_entry.second.to(max_publish_queue_ros);
 		} else if(_entry.first == "max_queue_ms_vnx") {
 			_entry.second.to(max_queue_ms_vnx);
 		} else if(_entry.first == "max_subscribe_queue_ros") {
 			_entry.second.to(max_subscribe_queue_ros);
+		} else if(_entry.first == "odom_frame") {
+			_entry.second.to(odom_frame);
 		}
 	}
 }
@@ -145,10 +169,10 @@ std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
 	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "pilot.ros.Bridge";
 	type_code->type_hash = vnx::Hash64(0x4deabea977d4c59bull);
-	type_code->code_hash = vnx::Hash64(0x7bc9884a22363c20ull);
+	type_code->code_hash = vnx::Hash64(0x44950c28c464d2aeull);
 	type_code->is_native = true;
 	type_code->methods.resize(0);
-	type_code->fields.resize(6);
+	type_code->fields.resize(9);
 	{
 		vnx::TypeField& field = type_code->fields[0];
 		field.is_extended = true;
@@ -169,18 +193,39 @@ std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
 	}
 	{
 		vnx::TypeField& field = type_code->fields[3];
+		field.is_extended = true;
+		field.name = "base_frame";
+		field.value = vnx::to_string("base_link");
+		field.code = {32};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[4];
+		field.is_extended = true;
+		field.name = "odom_frame";
+		field.value = vnx::to_string("odom");
+		field.code = {32};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[5];
+		field.is_extended = true;
+		field.name = "map_frame";
+		field.value = vnx::to_string("map");
+		field.code = {32};
+	}
+	{
+		vnx::TypeField& field = type_code->fields[6];
 		field.name = "max_queue_ms_vnx";
 		field.value = vnx::to_string(100);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
+		vnx::TypeField& field = type_code->fields[7];
 		field.name = "max_publish_queue_ros";
 		field.value = vnx::to_string(1);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
+		vnx::TypeField& field = type_code->fields[8];
 		field.name = "max_subscribe_queue_ros";
 		field.value = vnx::to_string(1);
 		field.code = {7};
@@ -298,19 +343,19 @@ void read(TypeInput& in, ::pilot::ros::BridgeBase& value, const TypeCode* type_c
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
 		{
-			const vnx::TypeField* const _field = type_code->field_map[3];
+			const vnx::TypeField* const _field = type_code->field_map[6];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.max_queue_ms_vnx, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[4];
+			const vnx::TypeField* const _field = type_code->field_map[7];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.max_publish_queue_ros, _field->code.data());
 			}
 		}
 		{
-			const vnx::TypeField* const _field = type_code->field_map[5];
+			const vnx::TypeField* const _field = type_code->field_map[8];
 			if(_field) {
 				vnx::read_value(_buf + _field->offset, value.max_subscribe_queue_ros, _field->code.data());
 			}
@@ -321,6 +366,9 @@ void read(TypeInput& in, ::pilot::ros::BridgeBase& value, const TypeCode* type_c
 			case 0: vnx::read(in, value.export_tf, type_code, _field->code.data()); break;
 			case 1: vnx::read(in, value.import_map, type_code, _field->code.data()); break;
 			case 2: vnx::read(in, value.export_map, type_code, _field->code.data()); break;
+			case 3: vnx::read(in, value.base_frame, type_code, _field->code.data()); break;
+			case 4: vnx::read(in, value.odom_frame, type_code, _field->code.data()); break;
+			case 5: vnx::read(in, value.map_frame, type_code, _field->code.data()); break;
 			default: vnx::skip(in, type_code, _field->code.data());
 		}
 	}
@@ -342,6 +390,9 @@ void write(TypeOutput& out, const ::pilot::ros::BridgeBase& value, const TypeCod
 	vnx::write(out, value.export_tf, type_code, type_code->fields[0].code.data());
 	vnx::write(out, value.import_map, type_code, type_code->fields[1].code.data());
 	vnx::write(out, value.export_map, type_code, type_code->fields[2].code.data());
+	vnx::write(out, value.base_frame, type_code, type_code->fields[3].code.data());
+	vnx::write(out, value.odom_frame, type_code, type_code->fields[4].code.data());
+	vnx::write(out, value.map_frame, type_code, type_code->fields[5].code.data());
 }
 
 void read(std::istream& in, ::pilot::ros::BridgeBase& value) {

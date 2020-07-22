@@ -8,6 +8,10 @@ module Bridge {
 	
 	vector<pair<vnx.TopicPtr, string>> export_map;					// [Pilot topic => ROS topic]
 	
+	string base_frame = "base_link";
+	string odom_frame = "odom";
+	string map_frame = "map";
+	
 	int max_queue_ms_vnx = 100;
 	
 	int max_publish_queue_ros = 1;

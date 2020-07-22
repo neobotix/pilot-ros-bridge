@@ -27,6 +27,9 @@ public:
 	std::vector<::vnx::TopicPtr> export_tf;
 	std::vector<std::pair<std::pair<std::string, std::string>, ::vnx::TopicPtr>> import_map;
 	std::vector<std::pair<::vnx::TopicPtr, std::string>> export_map;
+	std::string base_frame = "base_link";
+	std::string odom_frame = "odom";
+	std::string map_frame = "map";
 	int32_t max_queue_ms_vnx = 100;
 	int32_t max_publish_queue_ros = 1;
 	int32_t max_subscribe_queue_ros = 1;

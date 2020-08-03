@@ -20,10 +20,15 @@
 		["navigation.map_particles",			"/particlecloud"],
 		["navigation.road_map",					"/road_map"],
 		["navigation.global_path",				"/global_path"],
-		["navigation.local_planner_target",		"/local_planner_target"]
+		["navigation.local_planner_target",		"/local_planner_target"],
+		["navigation.local_pose_predicted",		"/local_pose_predicted"],
+		["navigation.local_cost_map",			"/local_cost_map"],
+		["navigation.global_cost_map",			"/global_cost_map"],
+		["debug.footprint",						"/debug/footprint"]
 	],
 	"import_map": [
 		[["/cmd_vel", "geometry_msgs/Twist"],							"platform.velocity_cmd"],
-		[["/initialpose", "geometry_msgs/PoseWithCovarianceStamped"],	"navigation.initial_map_pose"]
+		[["/initialpose", "geometry_msgs/PoseWithCovarianceStamped"],	"navigation.initial_pose"],
+		[["/move_base_simple/goal", "geometry_msgs/PoseStamped"],		"navigation.new_goal_pose"]
 	]
 }

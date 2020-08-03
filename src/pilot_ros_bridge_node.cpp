@@ -82,8 +82,10 @@ protected:
 				ros::Subscriber subs;
 				if(ros_type == "geometry_msgs/Twist") {
 					subs = nh.subscribe<geometry_msgs::Twist>(ros_topic, max_subscribe_queue_ros, boost::bind(&Pilot_ROS_Bridge::handle_twist, this, _1, ros_topic));
+				} else if(ros_type == "geometry_msgs/PoseStamped") {
+					subs = nh.subscribe<geometry_msgs::PoseStamped>(ros_topic, max_subscribe_queue_ros, boost::bind(&Pilot_ROS_Bridge::handle_pose, this, _1, ros_topic));
 				} else if(ros_type == "geometry_msgs/PoseWithCovarianceStamped") {
-					subs = nh.subscribe<geometry_msgs::PoseWithCovarianceStamped>(ros_topic, max_subscribe_queue_ros, boost::bind(&Pilot_ROS_Bridge::handle_pose, this, _1, ros_topic));
+					subs = nh.subscribe<geometry_msgs::PoseWithCovarianceStamped>(ros_topic, max_subscribe_queue_ros, boost::bind(&Pilot_ROS_Bridge::handle_pose_cov, this, _1, ros_topic));
 				} else {
 					log(ERROR) << "Unsupported ROS type: " << ros_type;
 					continue;
@@ -218,10 +220,30 @@ protected:
 		export_publish(out);
 	}
 
-	void handle(std::shared_ptr<const pilot::GridMapData> value) override
+	void handle(std::shared_ptr<const pilot::CostMapData> value) override
 	{
 		auto out = boost::make_shared<nav_msgs::OccupancyGrid>();
 		out->header.stamp = pilot_to_ros_time(value->time);
+		out->header.frame_id = value->frame;
+		out->info.resolution = value->scale;
+		out->info.width = value->cost.width();
+		out->info.height = value->cost.height();
+		out->info.origin.position.x = value->origin.x();
+		out->info.origin.position.y = value->origin.y();
+		tf::quaternionTFToMsg(tf::createQuaternionFromYaw(value->orientation), out->info.origin.orientation);
+		out->data.resize(value->cost.get_size());
+		for(size_t i = 0; i < out->data.size(); ++i) {
+			const auto pix = value->cost[i];
+			out->data[i] = pix / 2;
+		}
+		export_publish(out);
+	}
+
+	void handle(std::shared_ptr<const pilot::OccupancyMapData> value) override
+	{
+		auto out = boost::make_shared<nav_msgs::OccupancyGrid>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->header.frame_id = value->frame;
 		out->info.resolution = value->scale;
 		out->info.width = value->occupancy.width();
 		out->info.height = value->occupancy.height();
@@ -350,7 +372,23 @@ protected:
 		import_publish(out, topic_name);
 	}
 
-	void handle_pose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose, const std::string& topic_name)
+	void handle_pose(const geometry_msgs::PoseStamped::ConstPtr& pose, const std::string& topic_name)
+	{
+		tf::Transform tmp;
+		tf::poseMsgToTF(pose->pose, tmp);
+
+		auto out = pilot::Pose2D::create();
+		out->time = vnx::get_time_micros();
+		out->frame = base_frame;
+		out->parent = pose->header.frame_id;
+		out->pose.x() = pose->pose.position.x;
+		out->pose.y() = pose->pose.position.y;
+		out->pose.z() = tf::getYaw(pose->pose.orientation);
+		out->update();
+		import_publish(out, topic_name);
+	}
+
+	void handle_pose_cov(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose, const std::string& topic_name)
 	{
 		tf::Transform tmp;
 		tf::poseMsgToTF(pose->pose.pose, tmp);

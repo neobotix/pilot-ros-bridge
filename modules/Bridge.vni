@@ -31,7 +31,9 @@ module Bridge {
 	
 	void handle(pilot.LaserScan sample);
 	
-	void handle(pilot.GridMapData sample);
+	void handle(pilot.CostMapData sample);
+	
+	void handle(pilot.OccupancyMapData sample);
 	
 	void handle(pilot.RoadMapData sample);
 	

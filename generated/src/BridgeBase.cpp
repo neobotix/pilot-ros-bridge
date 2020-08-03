@@ -5,8 +5,9 @@
 #include <pilot/ros/BridgeBase.hxx>
 #include <vnx/NoSuchMethod.hxx>
 #include <automy/basic/Transform3D.hxx>
-#include <pilot/GridMapData.hxx>
+#include <pilot/CostMapData.hxx>
 #include <pilot/LaserScan.hxx>
+#include <pilot/OccupancyMapData.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/Path2D.hxx>
 #include <pilot/Pose2D.hxx>
@@ -236,6 +237,20 @@ std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
 
 void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 	{
+		auto _value = std::dynamic_pointer_cast<const ::pilot::OccupancyMapData>(_sample->value);
+		if(_value) {
+			handle(_value, _sample);
+			return;
+		}
+	}
+	{
+		auto _value = std::dynamic_pointer_cast<const ::pilot::CostMapData>(_sample->value);
+		if(_value) {
+			handle(_value, _sample);
+			return;
+		}
+	}
+	{
 		auto _value = std::dynamic_pointer_cast<const ::pilot::kinematics::differential::DriveState>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
@@ -272,13 +287,6 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 	}
 	{
 		auto _value = std::dynamic_pointer_cast<const ::pilot::LaserScan>(_sample->value);
-		if(_value) {
-			handle(_value, _sample);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::GridMapData>(_sample->value);
 		if(_value) {
 			handle(_value, _sample);
 			return;

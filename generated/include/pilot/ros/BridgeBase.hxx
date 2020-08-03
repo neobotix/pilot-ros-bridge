@@ -6,8 +6,9 @@
 
 #include <pilot/ros/package.hxx>
 #include <automy/basic/Transform3D.hxx>
-#include <pilot/GridMapData.hxx>
+#include <pilot/CostMapData.hxx>
 #include <pilot/LaserScan.hxx>
+#include <pilot/OccupancyMapData.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/Path2D.hxx>
 #include <pilot/Pose2D.hxx>
@@ -72,8 +73,10 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::Odometry> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::LaserScan> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::pilot::LaserScan> _value) {}
-	virtual void handle(std::shared_ptr<const ::pilot::GridMapData> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
-	virtual void handle(std::shared_ptr<const ::pilot::GridMapData> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::CostMapData> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::pilot::CostMapData> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::OccupancyMapData> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
+	virtual void handle(std::shared_ptr<const ::pilot::OccupancyMapData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::RoadMapData> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }
 	virtual void handle(std::shared_ptr<const ::pilot::RoadMapData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value, std::shared_ptr<const vnx::Sample> _sample) { handle(_value); }

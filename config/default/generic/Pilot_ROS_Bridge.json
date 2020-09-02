@@ -20,11 +20,14 @@
 		["navigation.map_particles",			"/particlecloud"],
 		["navigation.road_map",					"/road_map"],
 		["navigation.global_path",				"/global_path"],
-		["navigation.local_planner_target",		"/local_planner_target"],
-		["navigation.local_pose_predicted",		"/local_pose_predicted"],
+		["navigation.local_path",				"/local_path"],
 		["navigation.local_cost_map",			"/local_cost_map"],
+		["navigation.local_cost_map_overlay",	"/local_cost_map_overlay"],
 		["navigation.global_cost_map",			"/global_cost_map"],
-		["debug.footprint",						"/debug/footprint"]
+		["navigation.global_cost_map_overlay",	"/global_cost_map_overlay"],
+		["local_planner.target_pose",			"/local_planner/target_pose"],
+		["local_planner.predicted_pose",		"/local_planner/predicted_pose"],
+		["local_planner.predicted_footprint",	"/local_planner/predicted_footprint"]
 	],
 	"import_map": [
 		[["/cmd_vel", "geometry_msgs/Twist"],							"platform.velocity_cmd"],

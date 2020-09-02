@@ -234,7 +234,11 @@ protected:
 		out->data.resize(value->cost.get_size());
 		for(size_t i = 0; i < out->data.size(); ++i) {
 			const auto pix = value->cost[i];
-			out->data[i] = pix / 2;
+			if(pix <= 200) {
+				out->data[i] = pix / 2;
+			} else {
+				out->data[i] = -1;
+			}
 		}
 		export_publish(out);
 	}

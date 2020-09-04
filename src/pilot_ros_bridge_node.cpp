@@ -272,7 +272,7 @@ protected:
 		nodes->header.frame_id = map_frame;
 		nodes->ns = vnx_sample->topic->get_name() + ".nodes";
 		nodes->type = visualization_msgs::Marker::SPHERE_LIST;
-		nodes->scale.x = 0.05; nodes->scale.y = 0.05; nodes->scale.z = 0.05;
+		nodes->scale.x = 0.1; nodes->scale.y = 0.1; nodes->scale.z = 0.1;
 		nodes->color.r = 0; nodes->color.g = 0; nodes->color.b = 1; nodes->color.a = 1;
 
 		auto segments = boost::make_shared<visualization_msgs::Marker>();
@@ -305,7 +305,7 @@ protected:
 					marker.pose = tmp;
 					marker.text = station->name;
 					marker.scale.x = 0.25; marker.scale.y = 0.25; marker.scale.z = 0.25;
-					marker.color.r = 1; marker.color.g = 1; marker.color.b = 1; marker.color.a = 1;
+					marker.color.r = 0; marker.color.g = 0; marker.color.b = 0; marker.color.a = 1;
 					markers->markers.push_back(marker);
 				}
 			}

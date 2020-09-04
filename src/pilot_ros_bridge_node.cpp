@@ -308,12 +308,11 @@ protected:
 					marker.color.r = 1; marker.color.g = 1; marker.color.b = 1; marker.color.a = 1;
 					markers->markers.push_back(marker);
 				}
-			} else {
-				geometry_msgs::Point point;
-				point.x = node->position.x();
-				point.y = node->position.y();
-				nodes->points.push_back(point);
 			}
+			geometry_msgs::Point point;
+			point.x = node->position.x();
+			point.y = node->position.y();
+			nodes->points.push_back(point);
 			node_map[node->id] = node;
 		}
 		for(auto segment : value->segments) {

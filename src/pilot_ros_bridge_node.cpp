@@ -168,7 +168,7 @@ protected:
 	{
 		auto out = boost::make_shared<geometry_msgs::PoseArray>();
 		out->header.stamp = pilot_to_ros_time(value->time);
-		out->header.frame_id = value->parent;
+		out->header.frame_id = value->frame;
 		for(const auto& pose : value->poses) {
 			geometry_msgs::Pose tmp;
 			tmp.position.x = pose.x();

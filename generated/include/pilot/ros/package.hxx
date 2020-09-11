@@ -6,9 +6,6 @@
 
 #include <vnx/Type.h>
 
-#include <automy/basic/package.hxx>
-#include <pilot/package.hxx>
-#include <pilot/kinematics/differential/package.hxx>
 #include <vnx/package.hxx>
 
 
@@ -55,7 +52,7 @@ struct type<::pilot::ros::BridgeBase> {
 		vnx::accept(visitor, value);
 	}
 	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_ANY);
+		code.push_back(CODE_OBJECT);
 	}
 };
 

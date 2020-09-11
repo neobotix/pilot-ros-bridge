@@ -14,6 +14,8 @@
 #include <pilot/RoadMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/TopicPtr.hpp>
 
 #include <vnx/vnx.h>
@@ -30,6 +32,16 @@ BridgeClient::BridgeClient(const std::string& service_name)
 BridgeClient::BridgeClient(vnx::Hash64 service_addr)
 	:	Client::Client(service_addr)
 {
+}
+
+::vnx::TypeCode BridgeClient::vnx_get_type_code() {
+	auto _method = ::vnx::ModuleInterface_vnx_get_type_code::create();
+	auto _return_value = vnx_request(_method);
+	auto _result = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code_return>(_return_value);
+	if(!_result) {
+		throw std::logic_error("BridgeClient: !_result");
+	}
+	return _result->_ret_0;
 }
 
 

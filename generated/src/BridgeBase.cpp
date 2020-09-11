@@ -15,6 +15,8 @@
 #include <pilot/RoadMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <vnx/Module.h>
+#include <vnx/ModuleInterface_vnx_get_type_code.hxx>
+#include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/TopicPtr.hpp>
 
 #include <vnx/vnx.h>
@@ -68,8 +70,8 @@ void BridgeBase::accept(vnx::Visitor& _visitor) const {
 }
 
 void BridgeBase::write(std::ostream& _out) const {
-	_out << "{\"__type\": \"pilot.ros.Bridge\"";
-	_out << ", \"export_tf\": "; vnx::write(_out, export_tf);
+	_out << "{";
+	_out << "\"export_tf\": "; vnx::write(_out, export_tf);
 	_out << ", \"import_map\": "; vnx::write(_out, import_map);
 	_out << ", \"export_map\": "; vnx::write(_out, export_map);
 	_out << ", \"base_frame\": "; vnx::write(_out, base_frame);
@@ -109,7 +111,6 @@ void BridgeBase::read(std::istream& _in) {
 
 vnx::Object BridgeBase::to_object() const {
 	vnx::Object _object;
-	_object["__type"] = "pilot.ros.Bridge";
 	_object["export_tf"] = export_tf;
 	_object["import_map"] = import_map;
 	_object["export_map"] = export_map;
@@ -146,6 +147,61 @@ void BridgeBase::from_object(const vnx::Object& _object) {
 	}
 }
 
+vnx::Variant BridgeBase::get_field(const std::string& _name) const {
+	if(_name == "export_tf") {
+		return vnx::Variant(export_tf);
+	}
+	if(_name == "import_map") {
+		return vnx::Variant(import_map);
+	}
+	if(_name == "export_map") {
+		return vnx::Variant(export_map);
+	}
+	if(_name == "base_frame") {
+		return vnx::Variant(base_frame);
+	}
+	if(_name == "odom_frame") {
+		return vnx::Variant(odom_frame);
+	}
+	if(_name == "map_frame") {
+		return vnx::Variant(map_frame);
+	}
+	if(_name == "max_queue_ms_vnx") {
+		return vnx::Variant(max_queue_ms_vnx);
+	}
+	if(_name == "max_publish_queue_ros") {
+		return vnx::Variant(max_publish_queue_ros);
+	}
+	if(_name == "max_subscribe_queue_ros") {
+		return vnx::Variant(max_subscribe_queue_ros);
+	}
+	return vnx::Variant();
+}
+
+void BridgeBase::set_field(const std::string& _name, const vnx::Variant& _value) {
+	if(_name == "export_tf") {
+		_value.to(export_tf);
+	} else if(_name == "import_map") {
+		_value.to(import_map);
+	} else if(_name == "export_map") {
+		_value.to(export_map);
+	} else if(_name == "base_frame") {
+		_value.to(base_frame);
+	} else if(_name == "odom_frame") {
+		_value.to(odom_frame);
+	} else if(_name == "map_frame") {
+		_value.to(map_frame);
+	} else if(_name == "max_queue_ms_vnx") {
+		_value.to(max_queue_ms_vnx);
+	} else if(_name == "max_publish_queue_ros") {
+		_value.to(max_publish_queue_ros);
+	} else if(_name == "max_subscribe_queue_ros") {
+		_value.to(max_subscribe_queue_ros);
+	} else {
+		throw std::logic_error("no such field: '" + _name + "'");
+	}
+}
+
 /// \private
 std::ostream& operator<<(std::ostream& _out, const BridgeBase& _value) {
 	_value.write(_out);
@@ -172,7 +228,8 @@ std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
 	type_code->type_hash = vnx::Hash64(0x4deabea977d4c59bull);
 	type_code->code_hash = vnx::Hash64(0x44950c28c464d2aeull);
 	type_code->is_native = true;
-	type_code->methods.resize(0);
+	type_code->methods.resize(1);
+	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
 	type_code->fields.resize(9);
 	{
 		vnx::TypeField& field = type_code->fields[0];
@@ -309,6 +366,16 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
 }
 
 std::shared_ptr<vnx::Value> BridgeBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
+	const auto _type_hash = _method->get_type_hash();
+	if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
+		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
+		if(!_args) {
+			throw std::logic_error("vnx_call_switch(): !_args");
+		}
+		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
+		_return_value->_ret_0 = vnx_get_type_code();
+		return _return_value;
+	}
 	auto _ex = vnx::NoSuchMethod::create();
 	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
 	_ex->method = _method->get_type_name();
@@ -383,6 +450,10 @@ void read(TypeInput& in, ::pilot::ros::BridgeBase& value, const TypeCode* type_c
 }
 
 void write(TypeOutput& out, const ::pilot::ros::BridgeBase& value, const TypeCode* type_code, const uint16_t* code) {
+	if(code && code[0] == CODE_OBJECT) {
+		vnx::write(out, value.to_object(), nullptr, code);
+		return;
+	}
 	if(!type_code || (code && code[0] == CODE_ANY)) {
 		type_code = pilot::ros::vnx_native_type_code_BridgeBase;
 		out.write_type_code(type_code);

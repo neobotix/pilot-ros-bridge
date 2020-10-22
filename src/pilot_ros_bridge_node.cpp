@@ -23,7 +23,7 @@
 #include <vnx/Process.h>
 #include <vnx/Terminal.h>
 
-#include <pilot/ros/BridgeBase.hxx>
+#include <pilot/ros_bridge/BridgeBase.hxx>
 #include <pilot/Pose2D.hxx>
 #include <pilot/VelocityCmd.hxx>
 #include <pilot/GridMapData.hxx>
@@ -55,7 +55,7 @@ tf::Matrix3x3 pilot_to_ros_matrix_33(const automy::math::Matrix<T, 3, 3>& mat)
 }
 
 
-class Pilot_ROS_Bridge : public pilot::ros::BridgeBase {
+class Pilot_ROS_Bridge : public pilot::ros_bridge::BridgeBase {
 public:
 	Pilot_ROS_Bridge(const std::string& _vnx_name)
 		:	BridgeBase(_vnx_name)
@@ -462,7 +462,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh_private("~");
 
 	// initialize VNX
-	vnx::init("pilot_ros_bridge_node", 0, 0);
+	vnx::init("pilot_ros_bridge_node", 0, nullptr);
 
 	std::string pilot_node;
 	std::string pilot_config;

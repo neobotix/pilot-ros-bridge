@@ -1,4 +1,4 @@
-package pilot.ros;
+package pilot.ros_bridge;
 
 module Bridge {
 	

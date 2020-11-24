@@ -111,6 +111,11 @@ protected:
 		ros::shutdown();
 	}
 
+	void handle_resend(std::shared_ptr<const vnx::Sample> value) override
+	{
+		Super::handle(value);
+	}
+
 	void handle(std::shared_ptr<const automy::basic::Transform3D> value) override
 	{
 		geometry_msgs::TransformStamped out;

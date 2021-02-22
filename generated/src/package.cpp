@@ -3,8 +3,15 @@
 
 #include <pilot/ros_bridge/BridgeBase.hxx>
 
+#include <pilot/ros_bridge/package.hxx>
 #include <vnx/vnx.h>
 
+
+
+namespace vnx {
+
+
+} // namespace vnx
 
 
 namespace pilot {

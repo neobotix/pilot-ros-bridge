@@ -14,21 +14,27 @@
 #include <pilot/PoseArray2D.hxx>
 #include <pilot/RoadMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
+#include <pilot/kinematics/mecanum/DriveState.hxx>
+#include <pilot/kinematics/omnidrive/DriveState.hxx>
 #include <vnx/Module.h>
-#include <vnx/ModuleInterface_vnx_close.hxx>
-#include <vnx/ModuleInterface_vnx_close_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_config.hxx>
+#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_config_object.hxx>
 #include <vnx/ModuleInterface_vnx_get_config_object_return.hxx>
-#include <vnx/ModuleInterface_vnx_get_config_return.hxx>
+#include <vnx/ModuleInterface_vnx_get_module_info.hxx>
+#include <vnx/ModuleInterface_vnx_get_module_info_return.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code.hxx>
 #include <vnx/ModuleInterface_vnx_get_type_code_return.hxx>
 #include <vnx/ModuleInterface_vnx_restart.hxx>
 #include <vnx/ModuleInterface_vnx_restart_return.hxx>
+#include <vnx/ModuleInterface_vnx_self_test.hxx>
+#include <vnx/ModuleInterface_vnx_self_test_return.hxx>
 #include <vnx/ModuleInterface_vnx_set_config.hxx>
+#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
 #include <vnx/ModuleInterface_vnx_set_config_object.hxx>
 #include <vnx/ModuleInterface_vnx_set_config_object_return.hxx>
-#include <vnx/ModuleInterface_vnx_set_config_return.hxx>
+#include <vnx/ModuleInterface_vnx_stop.hxx>
+#include <vnx/ModuleInterface_vnx_stop_return.hxx>
 #include <vnx/TopicPtr.hpp>
 
 #include <vnx/vnx.h>
@@ -39,20 +45,20 @@ namespace ros_bridge {
 
 
 const vnx::Hash64 BridgeBase::VNX_TYPE_HASH(0x606dc1a7047c40f1ull);
-const vnx::Hash64 BridgeBase::VNX_CODE_HASH(0x211f6537a3eb9cf9ull);
+const vnx::Hash64 BridgeBase::VNX_CODE_HASH(0xb27d0f76c72ddbf5ull);
 
 BridgeBase::BridgeBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
 {
-	vnx::read_config(vnx_name + ".base_frame", base_frame);
-	vnx::read_config(vnx_name + ".export_map", export_map);
 	vnx::read_config(vnx_name + ".export_tf", export_tf);
 	vnx::read_config(vnx_name + ".import_map", import_map);
-	vnx::read_config(vnx_name + ".map_frame", map_frame);
-	vnx::read_config(vnx_name + ".max_publish_queue_ros", max_publish_queue_ros);
-	vnx::read_config(vnx_name + ".max_queue_ms_vnx", max_queue_ms_vnx);
-	vnx::read_config(vnx_name + ".max_subscribe_queue_ros", max_subscribe_queue_ros);
+	vnx::read_config(vnx_name + ".export_map", export_map);
+	vnx::read_config(vnx_name + ".base_frame", base_frame);
 	vnx::read_config(vnx_name + ".odom_frame", odom_frame);
+	vnx::read_config(vnx_name + ".map_frame", map_frame);
+	vnx::read_config(vnx_name + ".max_queue_ms_vnx", max_queue_ms_vnx);
+	vnx::read_config(vnx_name + ".max_publish_queue_ros", max_publish_queue_ros);
+	vnx::read_config(vnx_name + ".max_subscribe_queue_ros", max_subscribe_queue_ros);
 }
 
 vnx::Hash64 BridgeBase::get_type_hash() const {
@@ -97,28 +103,8 @@ void BridgeBase::write(std::ostream& _out) const {
 }
 
 void BridgeBase::read(std::istream& _in) {
-	std::map<std::string, std::string> _object;
-	vnx::read_object(_in, _object);
-	for(const auto& _entry : _object) {
-		if(_entry.first == "base_frame") {
-			vnx::from_string(_entry.second, base_frame);
-		} else if(_entry.first == "export_map") {
-			vnx::from_string(_entry.second, export_map);
-		} else if(_entry.first == "export_tf") {
-			vnx::from_string(_entry.second, export_tf);
-		} else if(_entry.first == "import_map") {
-			vnx::from_string(_entry.second, import_map);
-		} else if(_entry.first == "map_frame") {
-			vnx::from_string(_entry.second, map_frame);
-		} else if(_entry.first == "max_publish_queue_ros") {
-			vnx::from_string(_entry.second, max_publish_queue_ros);
-		} else if(_entry.first == "max_queue_ms_vnx") {
-			vnx::from_string(_entry.second, max_queue_ms_vnx);
-		} else if(_entry.first == "max_subscribe_queue_ros") {
-			vnx::from_string(_entry.second, max_subscribe_queue_ros);
-		} else if(_entry.first == "odom_frame") {
-			vnx::from_string(_entry.second, odom_frame);
-		}
+	if(auto _json = vnx::read_json(_in)) {
+		from_object(_json->to_object());
 	}
 }
 
@@ -237,215 +223,193 @@ const vnx::TypeCode* BridgeBase::static_get_type_code() {
 }
 
 std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
-	std::shared_ptr<vnx::TypeCode> type_code = std::make_shared<vnx::TypeCode>();
+	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "pilot.ros_bridge.Bridge";
 	type_code->type_hash = vnx::Hash64(0x606dc1a7047c40f1ull);
-	type_code->code_hash = vnx::Hash64(0x211f6537a3eb9cf9ull);
+	type_code->code_hash = vnx::Hash64(0xb27d0f76c72ddbf5ull);
 	type_code->is_native = true;
-	type_code->methods.resize(7);
+	type_code->native_size = sizeof(::pilot::ros_bridge::BridgeBase);
+	type_code->methods.resize(9);
 	type_code->methods[0] = ::vnx::ModuleInterface_vnx_get_config_object::static_get_type_code();
 	type_code->methods[1] = ::vnx::ModuleInterface_vnx_get_config::static_get_type_code();
 	type_code->methods[2] = ::vnx::ModuleInterface_vnx_set_config_object::static_get_type_code();
 	type_code->methods[3] = ::vnx::ModuleInterface_vnx_set_config::static_get_type_code();
 	type_code->methods[4] = ::vnx::ModuleInterface_vnx_get_type_code::static_get_type_code();
-	type_code->methods[5] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
-	type_code->methods[6] = ::vnx::ModuleInterface_vnx_close::static_get_type_code();
+	type_code->methods[5] = ::vnx::ModuleInterface_vnx_get_module_info::static_get_type_code();
+	type_code->methods[6] = ::vnx::ModuleInterface_vnx_restart::static_get_type_code();
+	type_code->methods[7] = ::vnx::ModuleInterface_vnx_stop::static_get_type_code();
+	type_code->methods[8] = ::vnx::ModuleInterface_vnx_self_test::static_get_type_code();
 	type_code->fields.resize(9);
 	{
-		vnx::TypeField& field = type_code->fields[0];
+		auto& field = type_code->fields[0];
 		field.is_extended = true;
 		field.name = "export_tf";
 		field.code = {12, 12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[1];
+		auto& field = type_code->fields[1];
 		field.is_extended = true;
 		field.name = "import_map";
 		field.code = {12, 23, 2, 4, 10, 23, 2, 4, 5, 32, 32, 12, 5};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[2];
+		auto& field = type_code->fields[2];
 		field.is_extended = true;
 		field.name = "export_map";
 		field.code = {12, 23, 2, 4, 6, 12, 5, 32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[3];
+		auto& field = type_code->fields[3];
 		field.is_extended = true;
 		field.name = "base_frame";
 		field.value = vnx::to_string("base_link");
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[4];
+		auto& field = type_code->fields[4];
 		field.is_extended = true;
 		field.name = "odom_frame";
 		field.value = vnx::to_string("odom");
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[5];
+		auto& field = type_code->fields[5];
 		field.is_extended = true;
 		field.name = "map_frame";
 		field.value = vnx::to_string("map");
 		field.code = {32};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[6];
+		auto& field = type_code->fields[6];
+		field.data_size = 4;
 		field.name = "max_queue_ms_vnx";
 		field.value = vnx::to_string(100);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[7];
+		auto& field = type_code->fields[7];
+		field.data_size = 4;
 		field.name = "max_publish_queue_ros";
-		field.value = vnx::to_string(1);
+		field.value = vnx::to_string(3);
 		field.code = {7};
 	}
 	{
-		vnx::TypeField& field = type_code->fields[8];
+		auto& field = type_code->fields[8];
+		field.data_size = 4;
 		field.name = "max_subscribe_queue_ros";
-		field.value = vnx::to_string(1);
+		field.value = vnx::to_string(3);
 		field.code = {7};
 	}
 	type_code->build();
 	return type_code;
 }
 
-void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) {
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::OccupancyMapData>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
+void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) {
+	const auto* _type_code = _value->get_type_code();
+	while(_type_code) {
+		switch(_type_code->type_hash) {
+			case 0xe762feb1b334b36dull:
+				handle(std::static_pointer_cast<const ::automy::basic::Transform3D>(_value));
+				return;
+			case 0x4d2c5b6d1a2f4dafull:
+				handle(std::static_pointer_cast<const ::pilot::CostMapData>(_value));
+				return;
+			case 0x865aafd7c578368ull:
+				handle(std::static_pointer_cast<const ::pilot::LaserScan>(_value));
+				return;
+			case 0xcdf63494e3518601ull:
+				handle(std::static_pointer_cast<const ::pilot::OccupancyMapData>(_value));
+				return;
+			case 0xcecf75b564f86511ull:
+				handle(std::static_pointer_cast<const ::pilot::Odometry>(_value));
+				return;
+			case 0xac30bf4b4195662full:
+				handle(std::static_pointer_cast<const ::pilot::Path2D>(_value));
+				return;
+			case 0x582f1fd83769573full:
+				handle(std::static_pointer_cast<const ::pilot::Pose2D>(_value));
+				return;
+			case 0x680a097e50172f80ull:
+				handle(std::static_pointer_cast<const ::pilot::PoseArray2D>(_value));
+				return;
+			case 0xb4bef4b6f7dbfaadull:
+				handle(std::static_pointer_cast<const ::pilot::RoadMapData>(_value));
+				return;
+			case 0x954b1e7cfbb6b85ull:
+				handle(std::static_pointer_cast<const ::pilot::kinematics::differential::DriveState>(_value));
+				return;
+			case 0x746ce8edadd78a68ull:
+				handle(std::static_pointer_cast<const ::pilot::kinematics::mecanum::DriveState>(_value));
+				return;
+			case 0x735822e6960c247ull:
+				handle(std::static_pointer_cast<const ::pilot::kinematics::omnidrive::DriveState>(_value));
+				return;
+			default:
+				_type_code = _type_code->super;
 		}
 	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::CostMapData>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::kinematics::differential::DriveState>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::PoseArray2D>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::Pose2D>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::Path2D>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::Odometry>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::LaserScan>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::pilot::RoadMapData>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
-	{
-		auto _value = std::dynamic_pointer_cast<const ::automy::basic::Transform3D>(_sample->value);
-		if(_value) {
-			handle(_value);
-			return;
-		}
-	}
+	handle(std::static_pointer_cast<const vnx::Value>(_value));
 }
 
 std::shared_ptr<vnx::Value> BridgeBase::vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) {
-	const auto _type_hash = _method->get_type_hash();
-	if(_type_hash == vnx::Hash64(0x17f58f68bf83abc0ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_object>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+	switch(_method->get_type_hash()) {
+		case 0x17f58f68bf83abc0ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config_object>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_get_config_object_return::create();
+			_return_value->_ret_0 = vnx_get_config_object();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_get_config_object_return::create();
-		_return_value->_ret_0 = vnx_get_config_object();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0xbbc7f1a01044d294ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xbbc7f1a01044d294ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_get_config>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_get_config_return::create();
+			_return_value->_ret_0 = vnx_get_config(_args->name);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_get_config_return::create();
-		_return_value->_ret_0 = vnx_get_config(_args->name);
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0xca30f814f17f322full)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config_object>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xca30f814f17f322full: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config_object>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_set_config_object_return::create();
+			vnx_set_config_object(_args->config);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_set_config_object_return::create();
-		vnx_set_config_object(_args->config);
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x362aac91373958b7ull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x362aac91373958b7ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_set_config>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_set_config_return::create();
+			vnx_set_config(_args->name, _args->value);
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_set_config_return::create();
-		vnx_set_config(_args->name, _args->value);
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x305ec4d628960e5dull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x305ec4d628960e5dull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_get_type_code>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
+			_return_value->_ret_0 = vnx_get_type_code();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_get_type_code_return::create();
-		_return_value->_ret_0 = vnx_get_type_code();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x9e95dc280cecca1bull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_restart>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0xf6d82bdf66d034a1ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_get_module_info>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_get_module_info_return::create();
+			_return_value->_ret_0 = vnx_get_module_info();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_restart_return::create();
-		vnx_restart();
-		return _return_value;
-	} else if(_type_hash == vnx::Hash64(0x9e165e2b50bad84bull)) {
-		auto _args = std::dynamic_pointer_cast<const ::vnx::ModuleInterface_vnx_close>(_method);
-		if(!_args) {
-			throw std::logic_error("vnx_call_switch(): !_args");
+		case 0x9e95dc280cecca1bull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_restart>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_restart_return::create();
+			vnx_restart();
+			return _return_value;
 		}
-		auto _return_value = ::vnx::ModuleInterface_vnx_close_return::create();
-		vnx_close();
-		return _return_value;
+		case 0x7ab49ce3d1bfc0d2ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_stop>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_stop_return::create();
+			vnx_stop();
+			return _return_value;
+		}
+		case 0x6ce3775b41a42697ull: {
+			auto _args = std::static_pointer_cast<const ::vnx::ModuleInterface_vnx_self_test>(_method);
+			auto _return_value = ::vnx::ModuleInterface_vnx_self_test_return::create();
+			_return_value->_ret_0 = vnx_self_test();
+			return _return_value;
+		}
 	}
 	auto _ex = vnx::NoSuchMethod::create();
-	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : 0;
+	_ex->dst_mac = vnx_request ? vnx_request->dst_mac : vnx::Hash64();
 	_ex->method = _method->get_type_name();
 	return _ex;
 }
@@ -474,37 +438,32 @@ void read(TypeInput& in, ::pilot::ros_bridge::BridgeBase& value, const TypeCode*
 		}
 	}
 	if(!type_code) {
-		throw std::logic_error("read(): type_code == 0");
+		vnx::skip(in, type_code, code);
+		return;
 	}
 	if(code) {
 		switch(code[0]) {
 			case CODE_STRUCT: type_code = type_code->depends[code[1]]; break;
 			case CODE_ALT_STRUCT: type_code = type_code->depends[vnx::flip_bytes(code[1])]; break;
-			default: vnx::skip(in, type_code, code); return;
+			default: {
+				vnx::skip(in, type_code, code);
+				return;
+			}
 		}
 	}
 	const char* const _buf = in.read(type_code->total_field_size);
 	if(type_code->is_matched) {
-		{
-			const vnx::TypeField* const _field = type_code->field_map[6];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_queue_ms_vnx, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[6]) {
+			vnx::read_value(_buf + _field->offset, value.max_queue_ms_vnx, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[7];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_publish_queue_ros, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[7]) {
+			vnx::read_value(_buf + _field->offset, value.max_publish_queue_ros, _field->code.data());
 		}
-		{
-			const vnx::TypeField* const _field = type_code->field_map[8];
-			if(_field) {
-				vnx::read_value(_buf + _field->offset, value.max_subscribe_queue_ros, _field->code.data());
-			}
+		if(const auto* const _field = type_code->field_map[8]) {
+			vnx::read_value(_buf + _field->offset, value.max_subscribe_queue_ros, _field->code.data());
 		}
 	}
-	for(const vnx::TypeField* _field : type_code->ext_fields) {
+	for(const auto* _field : type_code->ext_fields) {
 		switch(_field->native_index) {
 			case 0: vnx::read(in, value.export_tf, type_code, _field->code.data()); break;
 			case 1: vnx::read(in, value.import_map, type_code, _field->code.data()); break;
@@ -527,7 +486,7 @@ void write(TypeOutput& out, const ::pilot::ros_bridge::BridgeBase& value, const 
 		out.write_type_code(type_code);
 		vnx::write_class_header<::pilot::ros_bridge::BridgeBase>(out);
 	}
-	if(code && code[0] == CODE_STRUCT) {
+	else if(code && code[0] == CODE_STRUCT) {
 		type_code = type_code->depends[code[1]];
 	}
 	char* const _buf = out.write(12);

@@ -15,6 +15,8 @@
 #include <pilot/PoseArray2D.hxx>
 #include <pilot/RoadMapData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
+#include <pilot/kinematics/mecanum/DriveState.hxx>
+#include <pilot/kinematics/omnidrive/DriveState.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 
@@ -32,13 +34,15 @@ public:
 	std::string odom_frame = "odom";
 	std::string map_frame = "map";
 	int32_t max_queue_ms_vnx = 100;
-	int32_t max_publish_queue_ros = 1;
-	int32_t max_subscribe_queue_ros = 1;
+	int32_t max_publish_queue_ros = 3;
+	int32_t max_subscribe_queue_ros = 3;
 	
 	typedef ::vnx::Module Super;
 	
 	static const vnx::Hash64 VNX_TYPE_HASH;
 	static const vnx::Hash64 VNX_CODE_HASH;
+	
+	static constexpr uint64_t VNX_TYPE_ID = 0x606dc1a7047c40f1ull;
 	
 	BridgeBase(const std::string& _vnx_name);
 	
@@ -64,6 +68,8 @@ public:
 	static std::shared_ptr<vnx::TypeCode> static_create_type_code();
 	
 protected:
+	using Super::handle;
+	
 	virtual void handle(std::shared_ptr<const ::automy::basic::Transform3D> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::Path2D> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::Pose2D> _value) {}
@@ -74,8 +80,10 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::OccupancyMapData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::RoadMapData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::kinematics::mecanum::DriveState> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::kinematics::omnidrive::DriveState> _value) {}
 	
-	void vnx_handle_switch(std::shared_ptr<const vnx::Sample> _sample) override;
+	void vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;
 	
 };
@@ -83,5 +91,10 @@ protected:
 
 } // namespace pilot
 } // namespace ros_bridge
+
+
+namespace vnx {
+
+} // vnx
 
 #endif // INCLUDE_pilot_ros_bridge_BridgeBase_HXX_

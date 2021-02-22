@@ -51,9 +51,6 @@ struct type<::pilot::ros_bridge::BridgeBase> {
 	void accept(Visitor& visitor, const ::pilot::ros_bridge::BridgeBase& value) {
 		vnx::accept(visitor, value);
 	}
-	void create_dynamic_code(std::vector<uint16_t>& code) {
-		code.push_back(CODE_OBJECT);
-	}
 };
 
 

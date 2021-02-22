@@ -240,7 +240,7 @@ protected:
 		for(size_t i = 0; i < out->data.size(); ++i) {
 			const auto pix = value->cost[i];
 			if(pix <= 200) {
-				out->data[i] = std::min(pix / 2, 98);
+				out->data[i] = pix / 2;
 			} else {
 				out->data[i] = 0;
 			}
@@ -309,7 +309,7 @@ protected:
 					marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
 					marker.pose = tmp;
 					marker.text = station->name;
-					marker.scale.x = 0.25; marker.scale.y = 0.25; marker.scale.z = 0.25;
+					marker.scale.z = 0.25;
 					marker.color.r = 0; marker.color.g = 0; marker.color.b = 0; marker.color.a = 1;
 					markers->markers.push_back(marker);
 				}

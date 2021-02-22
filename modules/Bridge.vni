@@ -15,7 +15,6 @@ module Bridge {
 	int max_queue_ms_vnx = 100;
 	
 	int max_publish_queue_ros = 1;
-	
 	int max_subscribe_queue_ros = 1;
 	
 	
@@ -38,5 +37,9 @@ module Bridge {
 	void handle(pilot.RoadMapData sample);
 	
 	void handle(pilot.kinematics.differential.DriveState sample);
+	
+	void handle(pilot.kinematics.mecanum.DriveState sample);
+	
+	void handle(pilot.kinematics.omnidrive.DriveState sample);
 	
 }

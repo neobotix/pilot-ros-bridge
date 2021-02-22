@@ -28,8 +28,7 @@
 		["navigation.global_cost_map",			"/global_cost_map"],
 		["navigation.global_cost_map_overlay",	"/global_cost_map_overlay"],
 		["local_planner.target_pose",			"/local_planner/target_pose"],
-		["local_planner.predicted_pose",		"/local_planner/predicted_pose"],
-		["local_planner.predicted_footprint",	"/local_planner/predicted_footprint"]
+		["local_planner.predicted_pose",		"/local_planner/predicted_pose"]
 	],
 	"import_map": [
 		[["/cmd_vel", "geometry_msgs/Twist"],							"platform.velocity_cmd"],

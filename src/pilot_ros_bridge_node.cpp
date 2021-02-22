@@ -136,10 +136,10 @@ protected:
 		auto out = boost::make_shared<sensor_msgs::LaserScan>();
 		out->header.stamp = pilot_to_ros_time(value->time);
 		out->header.frame_id = value->frame;
-		out->angle_min = value->min_angle;
-		out->angle_max = value->max_angle;
-		out->range_min = value->min_range;
-		out->range_max = value->max_range;
+		out->angle_min = value->field.min_angle;
+		out->angle_max = value->field.max_angle;
+		out->range_min = value->field.min_range;
+		out->range_max = value->field.max_range;
 		if(value->points.size() >= 2) {
 			out->scan_time = (value->points.back().time_offset - value->points.front().time_offset) * 1e-6f;
 			out->time_increment = (value->points[1].time_offset - value->points[0].time_offset) * 1e-6f;
@@ -240,9 +240,9 @@ protected:
 		for(size_t i = 0; i < out->data.size(); ++i) {
 			const auto pix = value->cost[i];
 			if(pix <= 200) {
-				out->data[i] = pix / 2;
+				out->data[i] = std::min(pix / 2, 98);
 			} else {
-				out->data[i] = -1;
+				out->data[i] = 0;
 			}
 		}
 		export_publish(out);
@@ -367,6 +367,80 @@ protected:
 		export_publish(out);
 	}
 
+	void handle(std::shared_ptr<const pilot::kinematics::mecanum::DriveState> value) override
+	{
+		auto out = boost::make_shared<sensor_msgs::JointState>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->name.resize(4);
+		out->position.resize(4);
+		out->velocity.resize(4);
+		out->name[0] = "wheel_front_left_base_link";
+		out->name[1] = "wheel_front_right_base_link";
+		out->name[2] = "wheel_back_left_base_link";
+		out->name[3] = "wheel_back_right_base_link";
+		out->position[0] = value->position.front_left;
+		out->position[1] = value->position.front_right;
+		out->position[2] = value->position.back_left;
+		out->position[3] = value->position.back_right;
+		out->velocity[0] = value->velocity.front_left;
+		out->velocity[1] = value->velocity.front_right;
+		out->velocity[2] = value->velocity.back_left;
+		out->velocity[3] = value->velocity.back_right;
+		if(value->has_torque) {
+			out->effort.resize(4);
+			out->effort[0] = value->torque.front_left;
+			out->effort[1] = value->torque.front_right;
+			out->effort[2] = value->torque.back_left;
+			out->effort[3] = value->torque.back_right;
+		}
+		export_publish(out);
+	}
+
+	void handle(std::shared_ptr<const pilot::kinematics::omnidrive::DriveState> value) override
+	{
+		auto out = boost::make_shared<sensor_msgs::JointState>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->name.resize(8);
+		out->position.resize(8);
+		out->velocity.resize(8);
+		out->name[0] = "mpo_700_wheel_front_left_joint";
+		out->name[1] = "mpo_700_caster_front_left_joint";
+		out->name[2] = "mpo_700_wheel_back_left_joint";
+		out->name[3] = "mpo_700_caster_back_left_joint";
+		out->name[4] = "mpo_700_wheel_back_right_joint";
+		out->name[5] = "mpo_700_caster_back_right_joint";
+		out->name[6] = "mpo_700_wheel_front_right_joint";
+		out->name[7] = "mpo_700_caster_front_right_joint";
+		out->position[0] = value->drive_pos.front_left;
+		out->position[1] = value->steer_pos.front_left;
+		out->position[2] = value->drive_pos.back_left;
+		out->position[3] = value->steer_pos.back_left;
+		out->position[4] = value->drive_pos.back_right;
+		out->position[5] = value->steer_pos.back_right;
+		out->position[6] = value->drive_pos.front_right;
+		out->position[7] = value->steer_pos.front_right;
+		out->velocity[0] = value->drive_vel.front_left;
+		out->velocity[1] = value->steer_vel.front_left;
+		out->velocity[2] = value->drive_vel.back_left;
+		out->velocity[3] = value->steer_vel.back_left;
+		out->velocity[4] = value->drive_vel.back_right;
+		out->velocity[5] = value->steer_vel.back_right;
+		out->velocity[6] = value->drive_vel.front_right;
+		out->velocity[7] = value->steer_vel.front_right;
+		if(value->has_torque) {
+			out->effort.resize(8);
+			out->effort[0] = value->drive_torque.front_left;
+			out->effort[1] = value->steer_torque.front_left;
+			out->effort[2] = value->drive_torque.back_left;
+			out->effort[3] = value->steer_torque.back_left;
+			out->effort[4] = value->drive_torque.back_right;
+			out->effort[5] = value->steer_torque.back_right;
+			out->effort[6] = value->drive_torque.front_right;
+			out->effort[7] = value->steer_torque.front_right;
+		}
+		export_publish(out);
+	}
+
 	void handle_twist(const geometry_msgs::Twist::ConstPtr& twist, const std::string& topic_name)
 	{
 		auto out = pilot::VelocityCmd::create();
@@ -471,7 +545,7 @@ int main(int argc, char** argv)
 
 	std::string pilot_node;
 	std::string pilot_config;
-	nh_private.param<std::string>("pilot_node", pilot_node, ".pilot_main.sock");
+	nh_private.param<std::string>("pilot_node", pilot_node, "localhost:5555");
 	nh_private.param<std::string>("pilot_config", pilot_config, "config/default/generic/");
 
 	vnx::read_config_tree(pilot_config);

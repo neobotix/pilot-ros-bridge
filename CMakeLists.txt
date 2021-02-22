@@ -56,12 +56,14 @@ include_directories(
 	include
 	generated/include
 	/opt/neobotix/pilot-core/include
+	/opt/neobotix/pilot-gtkgui/include
 	${Boost_INCLUDE_DIRS}
 	${catkin_INCLUDE_DIRS}
 )
 
 link_directories(
 	/opt/neobotix/pilot-core/lib
+	/opt/neobotix/pilot-gtkgui/lib
 )
 
 add_executable(pilot_ros_bridge_node src/pilot_ros_bridge_node.cpp)

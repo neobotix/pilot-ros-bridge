@@ -7,9 +7,9 @@
 	<!-- start node -->
 	<node pkg="pilot_ros_bridge" type="pilot_ros_bridge_node" name="pilot_ros_bridge_node" respawn="false" output="screen">
 
-		<param name="pilot_node" type="str" value="10.1.30.50:5555"/>
+		<param name="pilot_node" type="str" value="$(env HOME)/pilot/.pilot_main.sock"/>
 
-		<param name="pilot_config" type="str" value="$(find pilot_ros_bridge)/config/default/generic/"/>
+		<param name="pilot_config" type="str" value="$(find pilot_ros_bridge)/config/default/mpo-700/"/>
 	</node>
 
 </launch>

@@ -12,6 +12,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 find_package(catkin REQUIRED COMPONENTS
 	 nav_msgs
+	 neo_msgs
+	 neo_srvs
 	 roscpp
 	 tf
 	 std_msgs
@@ -39,7 +41,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
     CATKIN_DEPENDS roscpp std_msgs tf nav_msgs sensor_msgs trajectory_msgs
-    INCLUDE_DIRS include generated/include
+    INCLUDE_DIRS generated/include
 )
 
 ###########
@@ -53,7 +55,6 @@ add_library(pilot_ros_bridge SHARED
 )
 
 include_directories(
-	include
 	generated/include
 	/opt/neobotix/pilot-core/include
 	/opt/neobotix/pilot-gtkgui/include

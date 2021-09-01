@@ -5,14 +5,20 @@
 #include <pilot/ros_bridge/BridgeBase.hxx>
 #include <vnx/NoSuchMethod.hxx>
 #include <automy/basic/Transform3D.hxx>
+#include <pilot/BatteryState.hxx>
 #include <pilot/CostMapData.hxx>
+#include <pilot/EmergencyState.hxx>
+#include <pilot/IOBoardData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/OccupancyMapData.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/Path2D.hxx>
+#include <pilot/PlatformInfo.hxx>
 #include <pilot/Pose2D.hxx>
 #include <pilot/PoseArray2D.hxx>
 #include <pilot/RoadMapData.hxx>
+#include <pilot/SystemState.hxx>
+#include <pilot/USBoardData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <pilot/kinematics/mecanum/DriveState.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>
@@ -45,7 +51,7 @@ namespace ros_bridge {
 
 
 const vnx::Hash64 BridgeBase::VNX_TYPE_HASH(0x606dc1a7047c40f1ull);
-const vnx::Hash64 BridgeBase::VNX_CODE_HASH(0xb27d0f76c72ddbf5ull);
+const vnx::Hash64 BridgeBase::VNX_CODE_HASH(0x211f6537a3eb9cf9ull);
 
 BridgeBase::BridgeBase(const std::string& _vnx_name)
 	:	Module::Module(_vnx_name)
@@ -226,7 +232,7 @@ std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
 	auto type_code = std::make_shared<vnx::TypeCode>();
 	type_code->name = "pilot.ros_bridge.Bridge";
 	type_code->type_hash = vnx::Hash64(0x606dc1a7047c40f1ull);
-	type_code->code_hash = vnx::Hash64(0xb27d0f76c72ddbf5ull);
+	type_code->code_hash = vnx::Hash64(0x211f6537a3eb9cf9ull);
 	type_code->is_native = true;
 	type_code->native_size = sizeof(::pilot::ros_bridge::BridgeBase);
 	type_code->methods.resize(9);
@@ -290,14 +296,14 @@ std::shared_ptr<vnx::TypeCode> BridgeBase::static_create_type_code() {
 		auto& field = type_code->fields[7];
 		field.data_size = 4;
 		field.name = "max_publish_queue_ros";
-		field.value = vnx::to_string(3);
+		field.value = vnx::to_string(1);
 		field.code = {7};
 	}
 	{
 		auto& field = type_code->fields[8];
 		field.data_size = 4;
 		field.name = "max_subscribe_queue_ros";
-		field.value = vnx::to_string(3);
+		field.value = vnx::to_string(1);
 		field.code = {7};
 	}
 	type_code->build();
@@ -311,8 +317,17 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) {
 			case 0xe762feb1b334b36dull:
 				handle(std::static_pointer_cast<const ::automy::basic::Transform3D>(_value));
 				return;
+			case 0xc6790e4d7b66f791ull:
+				handle(std::static_pointer_cast<const ::pilot::BatteryState>(_value));
+				return;
 			case 0x4d2c5b6d1a2f4dafull:
 				handle(std::static_pointer_cast<const ::pilot::CostMapData>(_value));
+				return;
+			case 0x77fc634da8371a8eull:
+				handle(std::static_pointer_cast<const ::pilot::EmergencyState>(_value));
+				return;
+			case 0x1ca79bd1e6cc8028ull:
+				handle(std::static_pointer_cast<const ::pilot::IOBoardData>(_value));
 				return;
 			case 0x865aafd7c578368ull:
 				handle(std::static_pointer_cast<const ::pilot::LaserScan>(_value));
@@ -326,6 +341,9 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) {
 			case 0xac30bf4b4195662full:
 				handle(std::static_pointer_cast<const ::pilot::Path2D>(_value));
 				return;
+			case 0x77e97bf9a57eed03ull:
+				handle(std::static_pointer_cast<const ::pilot::PlatformInfo>(_value));
+				return;
 			case 0x582f1fd83769573full:
 				handle(std::static_pointer_cast<const ::pilot::Pose2D>(_value));
 				return;
@@ -334,6 +352,12 @@ void BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) {
 				return;
 			case 0xb4bef4b6f7dbfaadull:
 				handle(std::static_pointer_cast<const ::pilot::RoadMapData>(_value));
+				return;
+			case 0x6581fb0fdb31ddaeull:
+				handle(std::static_pointer_cast<const ::pilot::SystemState>(_value));
+				return;
+			case 0x4850604e2930c0a0ull:
+				handle(std::static_pointer_cast<const ::pilot::USBoardData>(_value));
 				return;
 			case 0x954b1e7cfbb6b85ull:
 				handle(std::static_pointer_cast<const ::pilot::kinematics::differential::DriveState>(_value));

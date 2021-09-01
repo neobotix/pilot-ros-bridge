@@ -28,7 +28,12 @@
 		["navigation.global_cost_map",			"/global_cost_map"],
 		["navigation.global_cost_map_overlay",	"/global_cost_map_overlay"],
 		["local_planner.target_pose",			"/local_planner/target_pose"],
-		["local_planner.predicted_pose",		"/local_planner/predicted_pose"]
+		["local_planner.predicted_pose",		"/local_planner/predicted_pose"],
+		["platform.battery_state",				"/battery_state"],
+		["platform.io_board_data",				"/io_state"],
+		["platform.us_board_data",				"/us_state"],
+		["platform.emergency_state",			"/emergency_state"],
+		["platform.system_state",				"/relayboardV3/state"],
 	],
 	"import_map": [
 		[["/cmd_vel", "geometry_msgs/Twist"],							"platform.velocity_cmd"],

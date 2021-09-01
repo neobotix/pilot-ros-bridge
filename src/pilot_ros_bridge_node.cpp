@@ -270,6 +270,13 @@ protected:
 				case pilot::system_error_e::EM_STOP_SYSTEM_ERROR: out->relayboardv2_state[5] = true; break;  	
 			}	
 		}	
+		
+		std::shared_ptr<const pilot::BatteryState> bat_value;
+		
+		if(battery) {
+			out->battery_voltage = battery->voltage;
+			out->charging_current = battery->current;
+		}
 
 		// Charging state
 		switch(value->charging_state) 
@@ -292,9 +299,9 @@ protected:
 // Relayboard BatteryState
 	void handle(std::shared_ptr<const pilot::BatteryState> value) override
 	{
+		battery = value;
 		auto out = boost::make_shared<sensor_msgs::BatteryState>();
 		out->header.stamp = pilot_to_ros_time(value->time);
-		out->header.frame_id = "";
 
 		out->voltage = value->voltage;				// float32 Voltage in Volts (Mandatory)
 		out->current = value->current;				// float32 Negative when discharging (A)  (If unmeasured NaN)
@@ -703,7 +710,7 @@ private:
 
 	std::map<std::string, ros::Publisher> export_publishers;
 	std::multimap<vnx::TopicPtr, std::string> export_topic_map;
-
+	std::shared_ptr<const pilot::BatteryState> battery;
 };
 
 

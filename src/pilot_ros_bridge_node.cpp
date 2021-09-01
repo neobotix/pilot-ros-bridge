@@ -243,7 +243,7 @@ protected:
 		out->temperature = value->ambient_temperature;
 
 		// relay states
-		for(int i = 0; i <= value->relay_states.size(); ++i) { 
+		for(int i = 0; i < value->relay_states.size(); ++i) { 
 			out->relay_states[i] = value->relay_states[i];	  
 		}
 
@@ -262,17 +262,26 @@ protected:
 		for (auto it : value->system_errors) {
 			switch(it)
 			{
-				case pilot::system_error_e::CHARGING_RELAY_ERROR: out->relayboardv2_state[0] = true;
-				case pilot::system_error_e::BRAKE_RELEASE_BUTTON_ERROR: out->relayboardv2_state[1] = true;
-				case pilot::system_error_e::MOTOR_ERROR: out->relayboardv2_state[2] = true;
-				case pilot::system_error_e::SAFETY_RELAY_ERROR: out->relayboardv2_state[3] = true;
-				case pilot::system_error_e::POWER_RELAY_ERROR: out->relayboardv2_state[4] = true;
-				case pilot::system_error_e::EM_STOP_SYSTEM_ERROR: out->relayboardv2_state[5] = true;	  	
+				case pilot::system_error_e::CHARGING_RELAY_ERROR: out->relayboardv2_state[0] = true; break;
+				case pilot::system_error_e::BRAKE_RELEASE_BUTTON_ERROR: out->relayboardv2_state[1] = true; break;
+				case pilot::system_error_e::MOTOR_ERROR: out->relayboardv2_state[2] = true; break;
+				case pilot::system_error_e::SAFETY_RELAY_ERROR: out->relayboardv2_state[3] = true; break;
+				case pilot::system_error_e::POWER_RELAY_ERROR: out->relayboardv2_state[4] = true; break;
+				case pilot::system_error_e::EM_STOP_SYSTEM_ERROR: out->relayboardv2_state[5] = true; break;  	
 			}	
 		}	
 
 		// Charging state
-		out->charging_state = value->charging_state;
+		switch(value->charging_state) 
+		{
+			case pilot::charging_state_e::NOT_CHARGING: out->charging_state = 0; break;
+			case pilot::charging_state_e::IS_CHARGING: out->charging_state = 1; break;
+			case pilot::charging_state_e::NO_CHARGER: out->charging_state = 2; break;
+			case pilot::charging_state_e::BRAKES_OPEN: out->charging_state = 3; break;
+			case pilot::charging_state_e::EM_STOP: out->charging_state = 3; break;
+			case pilot::charging_state_e::ABORTED: out->charging_state = 4; break;
+			case pilot::charging_state_e::FINISHED: out->charging_state = 5; break;
+		}
 
 		// Shutdown
 		out->shutdown = value->is_shutdown; // relayboard is powering of in < 30s
@@ -314,15 +323,15 @@ protected:
 
 		// Scanner stop or EMStop
 		switch (value->code) {
-			case pilot::safety_code_e::SCANNER_STOP: out->emergency_button_stop = true;
-			case pilot::safety_code_e::EMERGENCY_STOP: out->emergency_button_stop = true;
+			case pilot::safety_code_e::SCANNER_STOP: out->emergency_button_stop = true; break;
+			case pilot::safety_code_e::EMERGENCY_STOP: out->scanner_stop = true; break;
 		}
 
 		// State of the EMStop
 		switch (value->state) {
-			case pilot::em_stop_state_e::FREE: out->emergency_state = 0;
-			case pilot::em_stop_state_e::STOPPED: out->emergency_state = 1;
-			case pilot::em_stop_state_e::CONFIRMED: out->emergency_state = 2;
+			case pilot::em_stop_state_e::FREE: out->emergency_state = 0; break;
+			case pilot::em_stop_state_e::STOPPED: out->emergency_state = 1; break;
+			case pilot::em_stop_state_e::CONFIRMED: out->emergency_state = 2; break;
 		}
 
 		export_publish(out);

@@ -323,8 +323,8 @@ protected:
 
 		// Scanner stop or EMStop
 		switch (value->code) {
-			case pilot::safety_code_e::SCANNER_STOP: out->emergency_button_stop = true; break;
-			case pilot::safety_code_e::EMERGENCY_STOP: out->scanner_stop = true; break;
+			case pilot::safety_code_e::SCANNER_STOP: out->scanner_stop = true; break;
+			case pilot::safety_code_e::EMERGENCY_STOP: out->emergency_button_stop = true; break;
 		}
 
 		// State of the EMStop

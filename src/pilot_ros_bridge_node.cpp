@@ -21,7 +21,16 @@
 #include <neo_msgs/EmergencyStopState.h>
 #include <neo_msgs/IOBoard.h>
 #include <neo_msgs/USBoardV2.h>
+#include <neo_srvs/IOBoardSetDigOut.h>
+#include <neo_srvs/RelayBoardSetRelay.h>
+#include <neo_srvs/RelayBoardSetLCDMsg.h>
+#include <neo_srvs/RelayBoardSetEMStop.h>
+#include <neo_srvs/RelayBoardUnSetEMStop.h>
+#include <std_srvs/Empty.h>
+#include <std_srvs/Trigger.h>
 #include <sensor_msgs/BatteryState.h>
+
+#include <pilot/PlatformInterfaceClient.hxx>
 
 #include <vnx/Proxy.h>
 #include <vnx/Config.h>
@@ -64,7 +73,7 @@ tf::Matrix3x3 pilot_to_ros_matrix_33(const automy::math::Matrix<T, 3, 3>& mat)
 class Pilot_ROS_Bridge : public pilot::ros_bridge::BridgeBase {
 public:
 	Pilot_ROS_Bridge(const std::string& _vnx_name)
-		:	BridgeBase(_vnx_name)
+		:	BridgeBase(_vnx_name), platform_interface("PlatformInterface")
 	{
 	}
 
@@ -669,6 +678,38 @@ protected:
 	}
 
 private:
+	bool serviceRelayBoardSetRelay(neo_srvs::RelayBoardSetRelay::Request &req,
+												  neo_srvs::RelayBoardSetRelay::Response &res)
+	{
+		res.success = true;
+		try {
+			platform_interface.set_relay(req.id, req.state);
+		}
+		catch(std::exception& ex)
+		{
+			ROS_ERROR("Did not recieve messages");
+		}
+		return true;
+	}
+
+	bool serviceStartCharging(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+	{
+		return true;
+	}
+
+	bool serviceStopCharging(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+	{
+		return true;
+	}
+
+	bool serviceRelayBoardSetLCDMsg(neo_srvs::RelayBoardSetLCDMsg::Request &req,
+													   neo_srvs::RelayBoardSetLCDMsg::Response &res)
+	{
+		res.success = true;
+		return true;
+	}
+
+
 	void import_publish(std::shared_ptr<vnx::Value> sample, const std::string& ros_topic)
 	{
 		const auto range = import_topic_map.equal_range(ros_topic);
@@ -711,6 +752,13 @@ private:
 	std::map<std::string, ros::Publisher> export_publishers;
 	std::multimap<vnx::TopicPtr, std::string> export_topic_map;
 	std::shared_ptr<const pilot::BatteryState> battery;
+
+	ros::ServiceServer srv_SetRelay = nh.advertiseService("set_relay", &Pilot_ROS_Bridge::serviceRelayBoardSetRelay, this);
+	ros::ServiceServer srv_StartCharging = nh.advertiseService("start_charging", &Pilot_ROS_Bridge::serviceStartCharging, this);
+	ros::ServiceServer srv_StopCharging = nh.advertiseService("stop_charging", &Pilot_ROS_Bridge::serviceStopCharging, this);
+	ros::ServiceServer srv_SetLCDMsg = nh.advertiseService("set_LCD_msg", &Pilot_ROS_Bridge::serviceRelayBoardSetLCDMsg, this);
+
+	pilot::PlatformInterfaceClient platform_interface;
 };
 
 
@@ -739,6 +787,7 @@ int main(int argc, char** argv)
 
 	vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(pilot_node));
 	proxy->time_sync = true;
+	proxy->forward_list.push_back("PlatformInterface");
 	{
 		vnx::Handle<Pilot_ROS_Bridge> module = new Pilot_ROS_Bridge("Pilot_ROS_Bridge");
 		for(auto topic : module->export_tf) {

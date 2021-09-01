@@ -17,7 +17,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <neo_msgs/RelayBoardV3.h>
+#include <neo_msgs/RelayBoardV2.h>
 #include <neo_msgs/EmergencyStopState.h>
 #include <neo_msgs/IOBoard.h>
 #include <neo_msgs/USBoardV2.h>
@@ -234,7 +234,7 @@ protected:
 // Relayboard SystemState
 	void handle(std::shared_ptr<const pilot::SystemState> value) override
 	{
-		auto out = boost::make_shared<neo_msgs::RelayBoardV3>();
+		auto out = boost::make_shared<neo_msgs::RelayBoardV2>();
 
 		// time
 		out->header.stamp = pilot_to_ros_time(value->time);
@@ -257,20 +257,17 @@ protected:
 		out->keypad[6] = value->keypad_state.digital_input[1];
 		out->keypad[7] = value->keypad_state.digital_input[2];
 
-		// Power System type
-		out->power_system_type = value->power_system_type;
-
 		// System errors
-		out->relayboardv3_state.assign(false);	
+		out->relayboardv2_state.assign(false);	
 		for (auto it : value->system_errors) {
 			switch(it)
 			{
-				case pilot::system_error_e::CHARGING_RELAY_ERROR: out->relayboardv3_state[0] = true;
-				case pilot::system_error_e::BRAKE_RELEASE_BUTTON_ERROR: out->relayboardv3_state[1] = true;
-				case pilot::system_error_e::MOTOR_ERROR: out->relayboardv3_state[2] = true;
-				case pilot::system_error_e::SAFETY_RELAY_ERROR: out->relayboardv3_state[3] = true;
-				case pilot::system_error_e::POWER_RELAY_ERROR: out->relayboardv3_state[4] = true;
-				case pilot::system_error_e::EM_STOP_SYSTEM_ERROR: out->relayboardv3_state[5] = true;	  	
+				case pilot::system_error_e::CHARGING_RELAY_ERROR: out->relayboardv2_state[0] = true;
+				case pilot::system_error_e::BRAKE_RELEASE_BUTTON_ERROR: out->relayboardv2_state[1] = true;
+				case pilot::system_error_e::MOTOR_ERROR: out->relayboardv2_state[2] = true;
+				case pilot::system_error_e::SAFETY_RELAY_ERROR: out->relayboardv2_state[3] = true;
+				case pilot::system_error_e::POWER_RELAY_ERROR: out->relayboardv2_state[4] = true;
+				case pilot::system_error_e::EM_STOP_SYSTEM_ERROR: out->relayboardv2_state[5] = true;	  	
 			}	
 		}	
 
@@ -279,9 +276,6 @@ protected:
 
 		// Shutdown
 		out->shutdown = value->is_shutdown; // relayboard is powering of in < 30s
-
-		// Check for hardware initialization
-		out->is_initialized = value->is_initialized;
 
 		export_publish(out);
 	}

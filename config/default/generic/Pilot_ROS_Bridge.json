@@ -33,7 +33,7 @@
 		["platform.io_board_data",				"/io_state"],
 		["platform.us_board_data",				"/us_state"],
 		["platform.emergency_state",			"/emergency_state"],
-		["platform.system_state",				"/relayboardV3/state"],
+		["platform.system_state",				"/relayboard_v2/state"],
 	],
 	"import_map": [
 		[["/cmd_vel", "geometry_msgs/Twist"],							"platform.velocity_cmd"],

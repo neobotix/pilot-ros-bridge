@@ -243,7 +243,7 @@ protected:
 		out->temperature = value->ambient_temperature;
 
 		// relay states
-		for(int i = 0; i <= sizeof(value->relay_states[i]); ++i) { 
+		for(int i = 0; i <= value->relay_states.size(); ++i) { 
 			out->relay_states[i] = value->relay_states[i];	  
 		}
 

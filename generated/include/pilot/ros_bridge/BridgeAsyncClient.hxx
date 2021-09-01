@@ -6,14 +6,20 @@
 
 #include <vnx/AsyncClient.h>
 #include <automy/basic/Transform3D.hxx>
+#include <pilot/BatteryState.hxx>
 #include <pilot/CostMapData.hxx>
+#include <pilot/EmergencyState.hxx>
+#include <pilot/IOBoardData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/OccupancyMapData.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/Path2D.hxx>
+#include <pilot/PlatformInfo.hxx>
 #include <pilot/Pose2D.hxx>
 #include <pilot/PoseArray2D.hxx>
 #include <pilot/RoadMapData.hxx>
+#include <pilot/SystemState.hxx>
+#include <pilot/USBoardData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <pilot/kinematics/mecanum/DriveState.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>

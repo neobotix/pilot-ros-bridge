@@ -6,14 +6,20 @@
 
 #include <pilot/ros_bridge/package.hxx>
 #include <automy/basic/Transform3D.hxx>
+#include <pilot/BatteryState.hxx>
 #include <pilot/CostMapData.hxx>
+#include <pilot/EmergencyState.hxx>
+#include <pilot/IOBoardData.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/OccupancyMapData.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/Path2D.hxx>
+#include <pilot/PlatformInfo.hxx>
 #include <pilot/Pose2D.hxx>
 #include <pilot/PoseArray2D.hxx>
 #include <pilot/RoadMapData.hxx>
+#include <pilot/SystemState.hxx>
+#include <pilot/USBoardData.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <pilot/kinematics/mecanum/DriveState.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>
@@ -34,8 +40,8 @@ public:
 	std::string odom_frame = "odom";
 	std::string map_frame = "map";
 	int32_t max_queue_ms_vnx = 100;
-	int32_t max_publish_queue_ros = 3;
-	int32_t max_subscribe_queue_ros = 3;
+	int32_t max_publish_queue_ros = 1;
+	int32_t max_subscribe_queue_ros = 1;
 	
 	typedef ::vnx::Module Super;
 	
@@ -79,6 +85,12 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::CostMapData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::OccupancyMapData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::RoadMapData> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::SystemState> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::BatteryState> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::EmergencyState> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::IOBoardData> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::USBoardData> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::PlatformInfo> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::mecanum::DriveState> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::omnidrive::DriveState> _value) {}

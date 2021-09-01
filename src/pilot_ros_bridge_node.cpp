@@ -17,6 +17,11 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <neo_msgs/RelayBoardV2.h>
+#include <neo_msgs/EmergencyStopState.h>
+#include <neo_msgs/IOBoard.h>
+#include <neo_msgs/USBoardV2.h>
+#include <sensor_msgs/BatteryState.h>
 
 #include <vnx/Proxy.h>
 #include <vnx/Config.h>
@@ -28,6 +33,7 @@
 #include <pilot/VelocityCmd.hxx>
 #include <pilot/GridMapData.hxx>
 #include <pilot/RoadMapData.hxx>
+#include <pilot/SystemState.hxx>
 #include <pilot/MapStation.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 
@@ -224,6 +230,175 @@ protected:
 		}
 		export_publish(out);
 	}
+
+// Relayboard SystemState
+	void handle(std::shared_ptr<const pilot::SystemState> value) override
+	{
+		auto out = boost::make_shared<neo_msgs::RelayBoardV2>();
+
+		// time
+		out->header.stamp = pilot_to_ros_time(value->time);
+
+		// ambient temperature
+		out->temperature = value->ambient_temperature;
+
+		// relay states
+		for(int i = 0; i < value->relay_states.size(); ++i) { 
+			out->relay_states[i] = value->relay_states[i];	  
+		}
+
+		// keypad states
+		out->keypad[0] = value->keypad_state.info_button;
+		out->keypad[1] = value->keypad_state.home_button;
+		out->keypad[2] = value->keypad_state.start_button;
+		out->keypad[3] = value->keypad_state.stop_button;
+		out->keypad[4] = value->keypad_state.brake_release_button;
+		out->keypad[5] = value->keypad_state.digital_input[0];
+		out->keypad[6] = value->keypad_state.digital_input[1];
+		out->keypad[7] = value->keypad_state.digital_input[2];
+
+		// System errors
+		out->relayboardv2_state.assign(false);	
+		for (auto it : value->system_errors) {
+			switch(it)
+			{
+				case pilot::system_error_e::CHARGING_RELAY_ERROR: out->relayboardv2_state[0] = true; break;
+				case pilot::system_error_e::BRAKE_RELEASE_BUTTON_ERROR: out->relayboardv2_state[1] = true; break;
+				case pilot::system_error_e::MOTOR_ERROR: out->relayboardv2_state[2] = true; break;
+				case pilot::system_error_e::SAFETY_RELAY_ERROR: out->relayboardv2_state[3] = true; break;
+				case pilot::system_error_e::POWER_RELAY_ERROR: out->relayboardv2_state[4] = true; break;
+				case pilot::system_error_e::EM_STOP_SYSTEM_ERROR: out->relayboardv2_state[5] = true; break;  	
+			}	
+		}	
+
+		// Charging state
+		switch(value->charging_state) 
+		{
+			case pilot::charging_state_e::NOT_CHARGING: out->charging_state = 0; break;
+			case pilot::charging_state_e::IS_CHARGING: out->charging_state = 1; break;
+			case pilot::charging_state_e::NO_CHARGER: out->charging_state = 2; break;
+			case pilot::charging_state_e::BRAKES_OPEN: out->charging_state = 3; break;
+			case pilot::charging_state_e::EM_STOP: out->charging_state = 3; break;
+			case pilot::charging_state_e::ABORTED: out->charging_state = 4; break;
+			case pilot::charging_state_e::FINISHED: out->charging_state = 5; break;
+		}
+
+		// Shutdown
+		out->shutdown = value->is_shutdown; // relayboard is powering of in < 30s
+
+		export_publish(out);
+	}
+
+// Relayboard BatteryState
+	void handle(std::shared_ptr<const pilot::BatteryState> value) override
+	{
+		auto out = boost::make_shared<sensor_msgs::BatteryState>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		out->header.frame_id = "";
+
+		out->voltage = value->voltage;				// float32 Voltage in Volts (Mandatory)
+		out->current = value->current;				// float32 Negative when discharging (A)  (If unmeasured NaN)
+		out->charge = NAN;							// float32 Current charge in Ah  (If unmeasured NaN)
+		out->capacity = NAN;						// float32 Capacity in Ah (last full capacity)  (If unmeasured NaN)
+		out->design_capacity = NAN;					// float32 Capacity in Ah (design capacity)  (If unmeasured NaN)
+		out->percentage = value->remaining;			// float32 Charge percentage on 0 to 1 range  (If unmeasured NaN)
+		out->power_supply_health = 0; 			    // uint8   The battery health metric.
+		out->power_supply_technology = 0;			// uint8   The battery chemistry.
+		out->present = true;						// bool    True if the battery is present
+		out->location = NAN;						// The location into which the battery is inserted. (slot number or plug)
+		out->serial_number = NAN; 					// The best approximation of the battery serial number
+
+		export_publish(out);
+	}
+
+// Relayboard EmergencyState
+	void handle(std::shared_ptr<const pilot::EmergencyState> value) override
+	{
+		neo_msgs::EmergencyStopState::Ptr out = boost::make_shared<neo_msgs::EmergencyStopState>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+
+		// assign input (laser, button) specific EM state
+		out->emergency_button_stop = false;
+		out->scanner_stop = false;
+
+		// Scanner stop or EMStop
+		switch (value->code) {
+			case pilot::safety_code_e::SCANNER_STOP: out->emergency_button_stop = true; break;
+			case pilot::safety_code_e::EMERGENCY_STOP: out->scanner_stop = true; break;
+		}
+
+		// State of the EMStop
+		switch (value->state) {
+			case pilot::em_stop_state_e::FREE: out->emergency_state = 0; break;
+			case pilot::em_stop_state_e::STOPPED: out->emergency_state = 1; break;
+			case pilot::em_stop_state_e::CONFIRMED: out->emergency_state = 2; break;
+		}
+
+		export_publish(out);
+	}
+
+// Relayboard IOBoardData
+	void handle(std::shared_ptr<const pilot::IOBoardData> value) override
+	{
+		neo_msgs::IOBoard::Ptr out = boost::make_shared<neo_msgs::IOBoard>();
+
+		// Assigning digital inputs and outputs
+		for (int iIOCnt = 0; iIOCnt < 16; iIOCnt++)
+		{
+			out->digital_inputs[iIOCnt] = value->digital_input[iIOCnt];
+			out->digital_outputs[iIOCnt] = value->digital_output[iIOCnt];
+		}
+
+		// Assigning analog inputs
+		for (int i = 0; i < 8; i++)
+		{
+			out->analog_inputs[i] = value->analog_input[i];
+		}
+
+		export_publish(out);
+	}
+
+// Relayboard USBoardData
+	void handle(std::shared_ptr<const pilot::USBoardData> value) override
+	{
+		neo_msgs::USBoardV2::Ptr out = boost::make_shared<neo_msgs::USBoardV2>();
+		out->header.stamp = pilot_to_ros_time(value->time);
+		
+		for (int i = 0; i < 16; i++)
+		{
+			out->sensor[i] = value->sensor[i];
+		}
+		
+		for (int i = 0; i < 4; i++)
+		{
+			out->analog[i] = value->analog_input[i];
+		}
+
+		// Publish raw data in neo_msgs::USBoardV2 format
+		export_publish(out);
+
+		// ToDo: Additionally publish data in ROS sensor_msgs::Range format
+		// for (int i = 0; i < 16; ++i)
+		// {
+		// 	if(!m_bUSBoardSensorActive[i]) {
+		// 		continue;
+		// 	}
+		// 	std_msgs::Header header;
+		// 	header.stamp = m_tCurrentTimeStamp;						   // time
+		// 	header.frame_id = "us_" + std::to_string(i + 1) + "_link"; 	// string
+
+		// 	sensor_msgs::Range us_range_msg;
+		// 	us_range_msg.header = header;
+		// 	us_range_msg.radiation_type = 0;				// uint8   => Enum ULTRASOUND=0; INFRARED=1
+		// 	us_range_msg.field_of_view = 1.05;				// float32 [rad]
+		// 	us_range_msg.min_range = 0.1;					// float32 [m]
+		// 	us_range_msg.max_range = 1.2;					// float32 [m]
+		// 	us_range_msg.range = out->sensor[i] / 100.f; // float32 [cm] => [m]
+
+		// 	topicPub_USRangeSensor[i].publish(us_range_msg);
+		// }
+	}
+
 
 	void handle(std::shared_ptr<const pilot::CostMapData> value) override
 	{

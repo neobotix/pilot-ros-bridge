@@ -35,6 +35,18 @@ module Bridge {
 	void handle(pilot.OccupancyMapData sample);
 	
 	void handle(pilot.RoadMapData sample);
+
+	void handle(pilot.SystemState sample);
+
+	void handle(pilot.BatteryState sample);
+
+	void handle(pilot.EmergencyState sample);
+
+	void handle(pilot.IOBoardData sample);
+
+	void handle(pilot.USBoardData sample);
+
+	void handle(pilot.PlatformInfo sample);
 	
 	void handle(pilot.kinematics.differential.DriveState sample);
 	

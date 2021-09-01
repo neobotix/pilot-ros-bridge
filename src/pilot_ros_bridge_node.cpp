@@ -681,30 +681,57 @@ private:
 	bool serviceRelayBoardSetRelay(neo_srvs::RelayBoardSetRelay::Request &req,
 												  neo_srvs::RelayBoardSetRelay::Response &res)
 	{
-		res.success = true;
 		try {
 			platform_interface.set_relay(req.id, req.state);
 		}
 		catch(std::exception& ex)
 		{
-			ROS_ERROR("Did not recieve messages");
+			ROS_ERROR("Exception: Did not recieve message");
+			res.success = false;
+			return false;
 		}
+		res.success = true;
 		return true;
 	}
 
 	bool serviceStartCharging(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 	{
+		try {
+			platform_interface.start_charging();
+		}
+		catch(std::exception& ex)
+		{
+			ROS_ERROR("Exception: Did not recieve message");
+			return false;
+		}
 		return true;
 	}
 
 	bool serviceStopCharging(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 	{
+		try {
+			platform_interface.stop_charging();
+		}
+		catch(std::exception& ex)
+		{
+			ROS_ERROR("Exception: Did not recieve message");
+			return false;
+		}
 		return true;
 	}
 
 	bool serviceRelayBoardSetLCDMsg(neo_srvs::RelayBoardSetLCDMsg::Request &req,
 													   neo_srvs::RelayBoardSetLCDMsg::Response &res)
 	{
+		try {
+			platform_interface.set_display_text(req.message.c_str());
+		}
+		catch(std::exception& ex)
+		{
+			ROS_ERROR("Exception: Did not recieve message");
+			res.success = false;
+			return false;
+		}
 		res.success = true;
 		return true;
 	}

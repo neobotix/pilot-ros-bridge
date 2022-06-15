@@ -7,6 +7,7 @@
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2/utils.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 // ROS message includes
 #include <sensor_msgs/msg/joy.hpp>
@@ -83,7 +84,9 @@ class Pilot_ROS_Bridge : public rclcpp::Node, public pilot::ros_bridge::BridgeBa
 public:
   Pilot_ROS_Bridge(const std::string& _vnx_name)
     : rclcpp::Node::Node(vnx::get_process_name()), BridgeBase(_vnx_name), platform_interface("PlatformInterface")
-  {}
+  {
+    broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+  }
 
 protected:
   void main() override
@@ -151,59 +154,59 @@ protected:
    Super::handle(value);
  }
 
- // void handle(std::shared_ptr<const automy::basic::Transform3D> value) override
- // {
- //   geometry_msgs::msg::TransformStamped out;
- //   out.header.stamp = pilot_to_ros_time(value->time);
- //   out.header.frame_id = value->parent;
- //   out.child_frame_id = value->frame;
- //   out.transform.translation.x = value->matrix(0, 3);
- //   out.transform.translation.y = value->matrix(1, 3);
- //   out.transform.translation.z = value->matrix(2, 3);
- //   tf2::Quaternion q;
- //   q.setRPY(0, 0, pilot_to_ros_matrix_33(value->matrix.get<3, 3>()));
- //   out.transform.rotation = tf2::toMsg(q);
- //   broadcaster.sendTransform(out);
- // }
+ void handle(std::shared_ptr<const automy::basic::Transform3D> value) override
+ {
+   geometry_msgs::msg::TransformStamped out;
+   out.header.stamp = pilot_to_ros_time(value->time);
+   out.header.frame_id = value->parent;
+   out.child_frame_id = value->frame;
+   out.transform.translation.x = value->matrix(0, 3);
+   out.transform.translation.y = value->matrix(1, 3);
+   out.transform.translation.z = value->matrix(2, 3);
+   tf2::Quaternion q;
+   pilot_to_ros_matrix_33(value->matrix.get<3, 3>()).getRotation(q);
+   out.transform.rotation = tf2::toMsg(q);
+   broadcaster->sendTransform(out);
+ }
 
- // void handle(std::shared_ptr<const pilot::LaserScan> value) override
- // {
- //   auto out = std::make_shared<sensor_msgs::msg::LaserScan>();
- //   out->header.stamp = pilot_to_ros_time(value->time);
- //   out->header.frame_id = value->frame;
- //   out->angle_min = value->field.min_angle;
- //   out->angle_max = value->field.max_angle;
- //   out->range_min = value->field.min_range;
- //   out->range_max = value->field.max_range;
- //   if(value->points.size() >= 2) {
- //     out->scan_time = (value->points.back().time_offset - value->points.front().time_offset) * 1e-6f;
- //     out->time_increment = (value->points[1].time_offset - value->points[0].time_offset) * 1e-6f;
- //     out->angle_increment = (value->points[1].angle - value->points[0].angle);
- //   }
- //   out->ranges.resize(value->points.size());
- //   out->intensities.resize(value->points.size());
- //   for(size_t i = 0; i < value->points.size(); ++i) {
- //     out->ranges[i] = value->points[i].distance;
- //     out->intensities[i] = value->points[i].intensity;
- //   }
- //   export_publish(out);
- // }
+ void handle(std::shared_ptr<const pilot::LaserScan> value) override
+ {
+   auto out = std::make_shared<sensor_msgs::msg::LaserScan>();
+   out->header.stamp = pilot_to_ros_time(value->time);
+   out->header.frame_id = value->frame;
+   out->angle_min = value->field.min_angle;
+   out->angle_max = value->field.max_angle;
+   out->range_min = value->field.min_range;
+   out->range_max = value->field.max_range;
+   if(value->points.size() >= 2) {
+     out->scan_time = (value->points.back().time_offset - value->points.front().time_offset) * 1e-6f;
+     out->time_increment = (value->points[1].time_offset - value->points[0].time_offset) * 1e-6f;
+     out->angle_increment = (value->points[1].angle - value->points[0].angle);
+   }
+   out->ranges.resize(value->points.size());
+   out->intensities.resize(value->points.size());
+   for(size_t i = 0; i < value->points.size(); ++i) {
+     out->ranges[i] = value->points[i].distance;
+     out->intensities[i] = value->points[i].intensity;
+   }
+   export_publish(out);
+ }
 
- // void handle(std::shared_ptr<const pilot::Pose2D> value) override
- // {
- //   if(std::count(export_tf.begin(), export_tf.end(), vnx_sample->topic)) {
- //     handle(std::shared_ptr<const automy::basic::Transform3D>(value));
- //   }
- //   tf2::Quaternion q;
- //   auto out = std::make_shared<geometry_msgs::msg::PoseWithCovarianceStamped>();
- //   out->header.stamp = pilot_to_ros_time(value->time);
- //   out->header.frame_id = value->parent;
- //   out->pose.pose.position.x = value->pose.x();
- //   out->pose.pose.position.y = value->pose.y();
- //   q.setRPY(0, 0, value->pose.z());
- //   out->pose.pose.orientation = tf2::toMsg(q);
- //   export_publish(out);
- // }
+ void handle(std::shared_ptr<const pilot::Pose2D> value) override
+ {
+   if(std::count(export_tf.begin(), export_tf.end(), vnx_sample->topic)) {
+     handle(std::shared_ptr<const automy::basic::Transform3D>(value));
+   }
+   tf2::Quaternion q;
+   auto out = std::make_shared<geometry_msgs::msg::PoseWithCovarianceStamped>();
+   out->header.stamp = pilot_to_ros_time(value->time);
+   out->header.frame_id = value->parent;
+   out->pose.pose.position.x = value->pose.x();
+   out->pose.pose.position.y = value->pose.y();
+   q.setRPY(0, 0, value->pose.z());
+   out->pose.pose.orientation = tf2::toMsg(q);
+   export_publish(out);
+ }
 
  void handle(std::shared_ptr<const pilot::PoseArray2D> value) override
  {
@@ -220,30 +223,30 @@ protected:
    export_publish(out);
  }
 
- // void handle(std::shared_ptr<const pilot::Odometry> value) override
- // {
- //   if(std::count(export_tf.begin(), export_tf.end(), vnx_sample->topic)) {
- //     handle(std::shared_ptr<const automy::basic::Transform3D>(value));
- //   }
+ void handle(std::shared_ptr<const pilot::Odometry> value) override
+ {
+   if(std::count(export_tf.begin(), export_tf.end(), vnx_sample->topic)) {
+     handle(std::shared_ptr<const automy::basic::Transform3D>(value));
+   }
 
- //   auto out = std::make_shared<nav_msgs::msg::Odometry>();
- //   out->header.stamp = pilot_to_ros_time(value->time);
- //   out->header.frame_id = value->parent;
- //   out->child_frame_id = value->frame;
- //   out->pose.pose.position.x = value->position[0];
- //   out->pose.pose.position.y = value->position[1];
- //   out->pose.pose.position.z = value->position[2];
- //   tf2::Quaternion q;
- //   q.setRPY(0, 0, pilot_to_ros_matrix_33(value->matrix.get<3, 3>()));
- //   out->info.origin.orientation = tf2::toMsg(q);
- //   out->twist.twist.linear.x = value->linear_velocity[0];
- //   out->twist.twist.linear.y = value->linear_velocity[1];
- //   out->twist.twist.linear.z = value->linear_velocity[2];
- //   out->twist.twist.angular.x = value->angular_velocity[0];
- //   out->twist.twist.angular.y = value->angular_velocity[1];
- //   out->twist.twist.angular.z = value->angular_velocity[2];
- //   export_publish(out);
- // }
+   auto out = std::make_shared<nav_msgs::msg::Odometry>();
+   out->header.stamp = pilot_to_ros_time(value->time);
+   out->header.frame_id = value->parent;
+   out->child_frame_id = value->frame;
+   out->pose.pose.position.x = value->position[0];
+   out->pose.pose.position.y = value->position[1];
+   out->pose.pose.position.z = value->position[2];
+   tf2::Quaternion q;
+   pilot_to_ros_matrix_33(value->matrix.get<3, 3>()).getRotation(q);
+   out->pose.pose.orientation = tf2::toMsg(q);
+   out->twist.twist.linear.x = value->linear_velocity[0];
+   out->twist.twist.linear.y = value->linear_velocity[1];
+   out->twist.twist.linear.z = value->linear_velocity[2];
+   out->twist.twist.angular.x = value->angular_velocity[0];
+   out->twist.twist.angular.y = value->angular_velocity[1];
+   out->twist.twist.angular.z = value->angular_velocity[2];
+   export_publish(out);
+ }
 
  void handle(std::shared_ptr<const pilot::Path2D> value) override
  {
@@ -339,26 +342,26 @@ protected:
    export_publish(out);
  }
 
-// // Relayboard IOBoardData
-//  void handle(std::shared_ptr<const pilot::IOBoardData> value) override
-//  {
-//    neo_msgs::IOBoard::Ptr out = boost::make_shared<neo_msgs::IOBoard>();
+// Relayboard IOBoardData
+ void handle(std::shared_ptr<const pilot::IOBoardData> value) override
+ {
+   auto out = std::make_shared<neo_msgs2::msg::IOBoard>();
 
-//    // Assigning digital inputs and outputs
-//    for (int iIOCnt = 0; iIOCnt < 16; iIOCnt++)
-//    {
-//      out->digital_inputs[iIOCnt] = value->digital_input[iIOCnt];
-//      out->digital_outputs[iIOCnt] = value->digital_output[iIOCnt];
-//    }
+   // Assigning digital inputs and outputs
+   for (int iIOCnt = 0; iIOCnt < 16; iIOCnt++)
+   {
+     out->digital_inputs[iIOCnt] = value->digital_input[iIOCnt];
+     out->digital_outputs[iIOCnt] = value->digital_output[iIOCnt];
+   }
 
-//    // Assigning analog inputs
-//    for (int i = 0; i < 8; i++)
-//    {
-//      out->analog_inputs[i] = value->analog_input[i];
-//    }
+   // Assigning analog inputs
+   for (int i = 0; i < 8; i++)
+   {
+     out->analog_inputs[i] = value->analog_input[i];
+   }
 
-//    export_publish(out);
-//  }
+   export_publish(out);
+ }
 
 // // Relayboard USBoardData
 //  void handle(std::shared_ptr<const pilot::USBoardData> value) override
@@ -761,7 +764,7 @@ protected:
 
 private:
 
-//  tf::TransformBroadcaster broadcaster;
+ std::shared_ptr<tf2_ros::TransformBroadcaster> broadcaster;
 
  std::map<std::string, std::any> import_subscribers;
  std::multimap<std::string, vnx::TopicPtr> import_topic_map;

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
-project(pilot-ros-bridge)
+project(pilot_ros_bridge)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -17,8 +17,6 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 
-add_executable(pilot_ros_bridge_node src/pilot_ros_bridge_node.cpp)
-
 set(dependencies
 	geometry_msgs
 	nav_msgs
@@ -31,7 +29,7 @@ set(dependencies
   tf2_ros
 	)
 
-ament_target_dependencies(pilot_ros_bridge_node	 ${dependencies})
+ament_export_include_directories(generated/include)
 
 ###########
 ## Build ##
@@ -39,9 +37,12 @@ ament_target_dependencies(pilot_ros_bridge_node	 ${dependencies})
 
 file(GLOB GENERATED_SOURCE_FILES generated/src/*.cpp)
 
-add_library(pilot_ros_bridge SHARED
+add_executable(pilot_ros_bridge
 	${GENERATED_SOURCE_FILES}
+	src/pilot_ros_bridge_node.cpp
 )
+
+ament_target_dependencies(pilot_ros_bridge ${dependencies})
 
 include_directories(
 	generated/include
@@ -54,9 +55,7 @@ link_directories(
 	/opt/neobotix/pilot-gtkgui/lib
 )
 
-ament_export_include_directories(generated/include)
-
-ament_export_dependencies(pilot_ros_bridge_node	 geometry_msgs
+ament_export_dependencies(pilot_ros_bridge geometry_msgs
 	nav_msgs
 	sensor_msgs
 	std_msgs
@@ -64,23 +63,22 @@ ament_export_dependencies(pilot_ros_bridge_node	 geometry_msgs
 	rclcpp
   tf2_ros)
 
-
-target_link_libraries(pilot_ros_bridge_node pilot_ros_bridge 
+target_link_libraries(pilot_ros_bridge
 	/opt/neobotix/pilot-core/lib/libpilot_kinematics_differential.so
-	/opt/neobotix/pilot-core/lib/libpilot_kinematics.so
+	/opt/neobotix/pilot-core/lib/libvnx_base.so
 	/opt/neobotix/pilot-core/lib/libpilot_core.so
-	/opt/neobotix/pilot-core/lib/libvnx_base.so)
-
-#############
-## Install ##
-#############
-
-## Mark executables and/or libraries for installation
-install(TARGETS pilot_ros_bridge_node pilot_ros_bridge
-    DESTINATION lib/${PROJECT_NAME}
+	/opt/neobotix/pilot-core/lib/libpilot_kinematics.so
 )
 
-install(DIRECTORY generated/include/
-  DESTINATION include)
+SET(CMAKE_EXE_LINKER_FLAGS 
+          "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,/opt/neobotix/pilot-core/lib")
+
+install(TARGETS pilot_ros_bridge 
+DESTINATION lib/${PROJECT_NAME}
+	)
+
+install(DIRECTORY launch config DESTINATION share/pilot_ros_bridge)
+
+ament_export_libraries(pilot_ros_bridge)
 
 ament_package()

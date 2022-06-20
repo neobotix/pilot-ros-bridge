@@ -807,7 +807,7 @@ int main(int argc, char** argv)
     module.start_detached();
   }
 
-  vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url("localhost:5555"));
+  vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(pilot_node));
   proxy->time_sync = true;
   proxy->forward_list.push_back("PlatformInterface");
   {

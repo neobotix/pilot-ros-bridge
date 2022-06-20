@@ -36,8 +36,8 @@
 #include <std_srvs/srv/trigger.hpp>
 
 // Visualization msgs
-// #include <visualization_msgs/Marker.h>
-// #include <visualization_msgs/MarkerArray.h>
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 #include <pilot/PlatformInterfaceClient.hxx>
 
@@ -78,7 +78,6 @@ tf2::Matrix3x3 pilot_to_ros_matrix_33(const automy::math::Matrix<T, 3, 3>& mat)
  }
  return res;
 }
-
 
 class Pilot_ROS_Bridge : public rclcpp::Node, public pilot::ros_bridge::BridgeBase {
 public:
@@ -455,80 +454,82 @@ protected:
   export_publish(out);
  }
 
-//  void handle(std::shared_ptr<const pilot::RoadMapData> value) override
-//  {
-//    auto nodes = boost::make_shared<visualization_msgs::Marker>();
-//    nodes->header.frame_id = map_frame;
-//    nodes->ns = vnx_sample->topic->get_name() + ".nodes";
-//    nodes->type = visualization_msgs::Marker::SPHERE_LIST;
-//    nodes->scale.x = 0.1; nodes->scale.y = 0.1; nodes->scale.z = 0.1;
-//    nodes->color.r = 0; nodes->color.g = 0; nodes->color.b = 1; nodes->color.a = 1;
+ void handle(std::shared_ptr<const pilot::RoadMapData> value) override
+ {
+   auto nodes = std::make_shared<visualization_msgs::msg::Marker>();
+   nodes->header.frame_id = map_frame;
+   nodes->ns = vnx_sample->topic->get_name() + ".nodes";
+   nodes->type = visualization_msgs::msg::Marker::SPHERE_LIST;
+   nodes->scale.x = 0.1; nodes->scale.y = 0.1; nodes->scale.z = 0.1;
+   nodes->color.r = 0; nodes->color.g = 0; nodes->color.b = 1; nodes->color.a = 1;
 
-//    auto segments = boost::make_shared<visualization_msgs::Marker>();
-//    segments->header.frame_id = map_frame;
-//    segments->ns = vnx_sample->topic->get_name() + ".segments";
-//    segments->type = visualization_msgs::Marker::LINE_LIST;
-//    segments->scale.x = 0.03;
-//    segments->color.r = 1; segments->color.g = 0; segments->color.b = 1; segments->color.a = 0.3;
+   auto segments = std::make_shared<visualization_msgs::msg::Marker>();
+   segments->header.frame_id = map_frame;
+   segments->ns = vnx_sample->topic->get_name() + ".segments";
+   segments->type = visualization_msgs::msg::Marker::LINE_LIST;
+   segments->scale.x = 0.03;
+   segments->color.r = 1; segments->color.g = 0; segments->color.b = 1; segments->color.a = 0.3;
 
-//    auto stations = boost::make_shared<geometry_msgs::PoseArray>();
-//    stations->header.frame_id = map_frame;
-//    auto markers = boost::make_shared<visualization_msgs::MarkerArray>();
+   auto stations = std::make_shared<geometry_msgs::msg::PoseArray>();
+   stations->header.frame_id = map_frame;
+   auto markers = std::make_shared<visualization_msgs::msg::MarkerArray>();
 
-//    std::map<int, std::shared_ptr<const pilot::MapNode>> node_map;
+   std::map<int, std::shared_ptr<const pilot::MapNode>> node_map;
 
-//    for(auto node : value->nodes) {
-//      auto station = std::dynamic_pointer_cast<const pilot::MapStation>(node);
-//      if(station) {
-//        geometry_msgs::Pose tmp;
-//        tmp.position.x = station->position.x();
-//        tmp.position.y = station->position.y();
-//        tf::quaternionTFToMsg(tf::createQuaternionFromYaw(station->orientation), tmp.orientation);
-//        stations->poses.push_back(tmp);
-//        {
-//          visualization_msgs::Marker marker;
-//          marker.header.frame_id = map_frame;
-//          marker.ns = vnx_sample->topic->get_name() + ".stations";
-//          marker.id = node->id;
-//          marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-//          marker.pose = tmp;
-//          marker.text = station->name;
-//          marker.scale.z = 0.25;
-//          marker.color.r = 0; marker.color.g = 0; marker.color.b = 0; marker.color.a = 1;
-//          markers->markers.push_back(marker);
-//        }
-//      }
-//      geometry_msgs::Point point;
-//      point.x = node->position.x();
-//      point.y = node->position.y();
-//      nodes->points.push_back(point);
-//      node_map[node->id] = node;
-//    }
-//    for(auto segment : value->segments) {
-//      {
-//        auto node = node_map[segment->from_node];
-//        geometry_msgs::Point point;
-//        if(node) {
-//          point.x = node->position.x();
-//          point.y = node->position.y();
-//        }
-//        segments->points.push_back(point);
-//      }
-//      {
-//        auto node = node_map[segment->to_node];
-//        geometry_msgs::Point point;
-//        if(node) {
-//          point.x = node->position.x();
-//          point.y = node->position.y();
-//        }
-//        segments->points.push_back(point);
-//      }
-//    }
-//    export_publish(nodes, "nodes");
-//    export_publish(segments, "segments");
-//    export_publish(stations, "stations");
-//    export_publish(markers, "markers");
-//  }
+   for(auto node : value->nodes) {
+     auto station = std::dynamic_pointer_cast<const pilot::MapStation>(node);
+     if(station) {
+       tf2::Quaternion q;
+       geometry_msgs::msg::Pose tmp;
+       tmp.position.x = station->position.x();
+       tmp.position.y = station->position.y();
+       q.setRPY(0, 0, station->orientation);
+       tmp.orientation = tf2::toMsg(q);
+       stations->poses.push_back(tmp);
+       {
+         visualization_msgs::msg::Marker marker;
+         marker.header.frame_id = map_frame;
+         marker.ns = vnx_sample->topic->get_name() + ".stations";
+         marker.id = node->id;
+         marker.type = visualization_msgs::msg::Marker::TEXT_VIEW_FACING;
+         marker.pose = tmp;
+         marker.text = station->name;
+         marker.scale.z = 0.25;
+         marker.color.r = 0; marker.color.g = 0; marker.color.b = 0; marker.color.a = 1;
+         markers->markers.push_back(marker);
+       }
+     }
+     geometry_msgs::msg::Point point;
+     point.x = node->position.x();
+     point.y = node->position.y();
+     nodes->points.push_back(point);
+     node_map[node->id] = node;
+   }
+   for(auto segment : value->segments) {
+     {
+       auto node = node_map[segment->from_node];
+       geometry_msgs::msg::Point point;
+       if(node) {
+         point.x = node->position.x();
+         point.y = node->position.y();
+       }
+       segments->points.push_back(point);
+     }
+     {
+       auto node = node_map[segment->to_node];
+       geometry_msgs::msg::Point point;
+       if(node) {
+         point.x = node->position.x();
+         point.y = node->position.y();
+       }
+       segments->points.push_back(point);
+     }
+   }
+   export_publish(nodes, "nodes");
+   export_publish(segments, "segments");
+   export_publish(stations, "stations");
+   export_publish(markers, "markers");
+ }
 
  void handle(std::shared_ptr<const pilot::kinematics::differential::DriveState> value) override
  {

@@ -16,6 +16,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 set(dependencies
 	geometry_msgs
@@ -27,6 +28,7 @@ set(dependencies
   tf2_geometry_msgs
 	rclcpp
   tf2_ros
+  visualization_msgs
 	)
 
 ament_export_include_directories(generated/include)
@@ -60,6 +62,7 @@ ament_export_dependencies(pilot_ros_bridge geometry_msgs
 	sensor_msgs
 	std_msgs
 	trajectory_msgs
+	visualization_msgs
 	rclcpp
   tf2_ros)
 

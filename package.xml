@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>pilot-ros-bridge</name>
+  <name>pilot_ros_bridge</name>
   <version>1.0.0</version>
   <description>Two-way bridge between PlatformPilot and ROS2</description>
 

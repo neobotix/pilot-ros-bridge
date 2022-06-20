@@ -789,7 +789,7 @@ int main(int argc, char** argv)
 
   // initialize VNX
   vnx::init("pilot_ros_bridge_node", 0, nullptr);
-  auto nh = std::make_shared<Pilot_ROS_Bridge>("ROS_Node");
+  auto nh = std::make_shared<Pilot_ROS_Bridge>("pilot_ros_bridge_node");
 
   std::string pilot_node;
   std::string pilot_config;
@@ -807,7 +807,7 @@ int main(int argc, char** argv)
     module.start_detached();
   }
 
-  vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url(pilot_node));
+  vnx::Handle<vnx::Proxy> proxy = new vnx::Proxy("Proxy", vnx::Endpoint::from_url("localhost:5555"));
   proxy->time_sync = true;
   proxy->forward_list.push_back("PlatformInterface");
   {

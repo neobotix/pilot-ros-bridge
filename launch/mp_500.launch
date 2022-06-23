@@ -2,7 +2,7 @@
 <launch>
 
 	<node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher">
-		<param name="robot_description" value="$(command 'xacro $(find-pkg-share neo_mp_400-2)/robot_model/mp_400/mp_400.urdf')"/>
+		<param name="robot_description" value="$(command 'xacro $(find-pkg-share neo_mp_500-2)/robot_model/mp_500/mp_500.urdf')"/>
 	</node>
 
 	<!-- start node -->
@@ -10,7 +10,7 @@
 
 		<param name="pilot_node" value="$(env HOME)/pilot/.pilot_main.sock"/>
 
-		<param name="pilot_config" value="$(find-pkg-share pilot_ros_bridge)/config/default/mp-400/"/>
+		<param name="pilot_config" value="$(find-pkg-share pilot_ros_bridge)/config/default/mp-500/"/>
 	</node>
 
 </launch>

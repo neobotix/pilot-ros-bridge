@@ -85,6 +85,30 @@ public:
     : rclcpp::Node::Node(vnx::get_process_name()), BridgeBase(_vnx_name), platform_interface("PlatformInterface")
   {
     broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+    srv_SetRelay = 
+      this->create_service<neo_srvs2::srv::RelayBoardSetRelay>(
+        "set_relay",
+        std::bind(&Pilot_ROS_Bridge::serviceRelayBoardSetRelay,
+          this,
+          _1, _2));
+    srv_StartCharging = 
+      this->create_service<std_srvs::srv::Empty>(
+        "start_charging",
+        std::bind(&Pilot_ROS_Bridge::serviceStartCharging,
+          this,
+          _1, _2)); 
+    srv_StopCharging = 
+      this->create_service<std_srvs::srv::Empty>(
+        "stop_charging",
+        std::bind(&Pilot_ROS_Bridge::serviceStopCharging,
+          this,
+          _1, _2)); 
+    srv_SetLCDMsg =
+      this->create_service<neo_srvs2::srv::RelayBoardSetLCDMsg>(
+        "set_LCD_msg",
+        std::bind(&Pilot_ROS_Bridge::serviceRelayBoardSetLCDMsg,
+          this,
+          _1, _2)); 
   }
 
 protected:
@@ -672,64 +696,67 @@ protected:
    import_publish(out, topic_name);
  }
 
-// private:
-//  bool serviceRelayBoardSetRelay(neo_srvs::RelayBoardSetRelay::Request &req,
-//                          neo_srvs::RelayBoardSetRelay::Response &res)
-//  {
-//    try {
-//      platform_interface.set_relay(req.id, req.state);
-//    }
-//    catch(std::exception& ex)
-//    {
-//      ROS_ERROR("Exception: Did not recieve message");
-//      res.success = false;
-//      return false;
-//    }
-//    res.success = true;
-//    return true;
-//  }
+  bool serviceRelayBoardSetRelay(std::shared_ptr<neo_srvs2::srv::RelayBoardSetRelay::Request> req,
+                          std::shared_ptr<neo_srvs2::srv::RelayBoardSetRelay::Response> res)
+  {
+   try {
+     platform_interface.set_relay(req->id, req->state);
+   }
+   catch(std::exception& ex)
+   {
+     RCLCPP_ERROR(this->get_logger(), "Exception: Did not recieve message");
+     res->success = false;
+     return false;
+   }
+   res->success = true;
+   return true;
+  }
 
-//  bool serviceStartCharging(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
-//  {
-//    try {
-//      platform_interface.start_charging();
-//    }
-//    catch(std::exception& ex)
-//    {
-//      ROS_ERROR("Exception: Did not recieve message");
-//      return false;
-//    }
-//    return true;
-//  }
+ bool serviceStartCharging(
+  std::shared_ptr<std_srvs::srv::Empty::Request> /*req*/, 
+  std::shared_ptr<std_srvs::srv::Empty::Response> /*res*/ )
+ {
+   try {
+     platform_interface.start_charging();
+   }
+   catch(std::exception& ex)
+   {
+     RCLCPP_ERROR(this->get_logger(), "Exception: Did not recieve message");
+     return false;
+   }
+   return true;
+ }
 
-//  bool serviceStopCharging(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
-//  {
-//    try {
-//      platform_interface.stop_charging();
-//    }
-//    catch(std::exception& ex)
-//    {
-//      ROS_ERROR("Exception: Did not recieve message");
-//      return false;
-//    }
-//    return true;
-//  }
+ bool serviceStopCharging(
+  std::shared_ptr<std_srvs::srv::Empty::Request> /*req*/, 
+  std::shared_ptr<std_srvs::srv::Empty::Response> /*res*/)
+ {
+   try {
+     platform_interface.stop_charging();
+   }
+   catch(std::exception& ex)
+   {
+     RCLCPP_ERROR(this->get_logger(), "Exception: Did not recieve message");
+     return false;
+   }
+   return true;
+ }
 
-//  bool serviceRelayBoardSetLCDMsg(neo_srvs::RelayBoardSetLCDMsg::Request &req,
-//                             neo_srvs::RelayBoardSetLCDMsg::Response &res)
-//  {
-//    try {
-//      platform_interface.set_display_text(req.message.c_str());
-//    }
-//    catch(std::exception& ex)
-//    {
-//      ROS_ERROR("Exception: Did not recieve message");
-//      res.success = false;
-//      return false;
-//    }
-//    res.success = true;
-//    return true;
-//  }
+ bool serviceRelayBoardSetLCDMsg(std::shared_ptr<neo_srvs2::srv::RelayBoardSetLCDMsg::Request> req,
+                          std::shared_ptr<neo_srvs2::srv::RelayBoardSetLCDMsg::Response> res)
+ {
+   try {
+     platform_interface.set_display_text(req->message.c_str());
+   }
+   catch(std::exception& ex)
+   {
+     RCLCPP_ERROR(this->get_logger(), "Exception: Did not recieve message");
+     res->success = false;
+     return false;
+   }
+   res->success = true;
+   return true;
+ }
 
 
  void import_publish(std::shared_ptr<vnx::Value> sample, const std::string& ros_topic)
@@ -774,10 +801,10 @@ private:
  std::multimap<vnx::TopicPtr, std::string> export_topic_map;
  std::shared_ptr<const pilot::BatteryState> battery;
 
-//  ros::ServiceServer srv_SetRelay = nh.advertiseService("set_relay", &Pilot_ROS_Bridge::serviceRelayBoardSetRelay, this);
-//  ros::ServiceServer srv_StartCharging = nh.advertiseService("start_charging", &Pilot_ROS_Bridge::serviceStartCharging, this);
-//  ros::ServiceServer srv_StopCharging = nh.advertiseService("stop_charging", &Pilot_ROS_Bridge::serviceStopCharging, this);
-//  ros::ServiceServer srv_SetLCDMsg = nh.advertiseService("set_LCD_msg", &Pilot_ROS_Bridge::serviceRelayBoardSetLCDMsg, this);
+ rclcpp::Service<neo_srvs2::srv::RelayBoardSetRelay>::SharedPtr srv_SetRelay;
+ rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_StartCharging; 
+ rclcpp::Service<std_srvs::srv::Empty>::SharedPtr srv_StopCharging;
+ rclcpp::Service<neo_srvs2::srv::RelayBoardSetLCDMsg>::SharedPtr srv_SetLCDMsg; 
 
   pilot::PlatformInterfaceClient platform_interface;
 };

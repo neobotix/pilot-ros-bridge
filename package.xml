@@ -17,6 +17,7 @@
   <exec_depend>rclcpp_action</exec_depend>
   <exec_depend>rclcpp_lifecycle</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>neo_msgs2</exec_depend>
   <exec_depend>neo_srvs2</exec_depend>

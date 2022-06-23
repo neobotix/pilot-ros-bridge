@@ -1,15 +1,16 @@
 <?xml version="1.0"?>
 <launch>
 
-	<param name="robot_description" command="$(find xacro)/xacro '$(find neo_mpo_500)/robot_model/mpo_500/mpo_500.urdf.xacro'" />
-	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+	<node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher">
+		<param name="robot_description" value="$(command 'xacro $(find-pkg-share neo_mpo_500-2)/robot_model/mpo_500/mpo_500.urdf')"/>
+	</node>
 
 	<!-- start node -->
-	<node pkg="pilot_ros_bridge" type="pilot_ros_bridge_node" name="pilot_ros_bridge_node" respawn="false" output="screen">
+	<node pkg="pilot_ros_bridge" exec="pilot_ros_bridge" name="pilot_ros_bridge">
 
-		<param name="pilot_node" type="str" value="$(env HOME)/pilot/.pilot_main.sock"/>
+		<param name="pilot_node" value="$(env HOME)/pilot/.pilot_main.sock"/>
 
-		<param name="pilot_config" type="str" value="$(find pilot_ros_bridge)/config/default/mpo-500/"/>
+		<param name="pilot_config" value="$(find-pkg-share pilot_ros_bridge)/config/default/mpo-500/"/>
 	</node>
 
 </launch>

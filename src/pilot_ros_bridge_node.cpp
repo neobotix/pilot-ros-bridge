@@ -248,24 +248,6 @@ protected:
 		// time
 		out->header.stamp = pilot_to_ros_time(value->time);
 
-		// ambient temperature
-		out->temperature = value->ambient_temperature;
-
-		// relay states
-		for(int i = 0; i < value->relay_states.size(); ++i) { 
-			out->relay_states[i] = value->relay_states[i];	  
-		}
-
-		// keypad states
-		out->keypad[0] = value->keypad_state.info_button;
-		out->keypad[1] = value->keypad_state.home_button;
-		out->keypad[2] = value->keypad_state.start_button;
-		out->keypad[3] = value->keypad_state.stop_button;
-		out->keypad[4] = value->keypad_state.brake_release_button;
-		out->keypad[5] = value->keypad_state.digital_input[0];
-		out->keypad[6] = value->keypad_state.digital_input[1];
-		out->keypad[7] = value->keypad_state.digital_input[2];
-
 		// System errors
 		out->relayboardv2_state.assign(false);	
 		for (auto it : value->system_errors) {
@@ -281,23 +263,6 @@ protected:
 		}	
 		
 		std::shared_ptr<const pilot::BatteryState> bat_value;
-		
-		if(battery) {
-			out->battery_voltage = battery->voltage;
-			out->charging_current = battery->current;
-		}
-
-		// Charging state
-		switch(value->charging_state) 
-		{
-			case pilot::charging_state_e::NOT_CHARGING: out->charging_state = 0; break;
-			case pilot::charging_state_e::IS_CHARGING: out->charging_state = 1; break;
-			case pilot::charging_state_e::NO_CHARGER: out->charging_state = 2; break;
-			case pilot::charging_state_e::BRAKES_OPEN: out->charging_state = 3; break;
-			case pilot::charging_state_e::EM_STOP: out->charging_state = 3; break;
-			case pilot::charging_state_e::ABORTED: out->charging_state = 4; break;
-			case pilot::charging_state_e::FINISHED: out->charging_state = 5; break;
-		}
 
 		// Shutdown
 		out->shutdown = value->is_shutdown; // relayboard is powering of in < 30s

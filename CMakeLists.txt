@@ -27,37 +27,55 @@ set(dependencies
 	neo_srvs2
 	trajectory_msgs
 	sensor_msgs
-  tf2_geometry_msgs
+	tf2_geometry_msgs
 	rclcpp
-  tf2_ros
-  visualization_msgs
-	)
+	tf2_ros
+	visualization_msgs
+)
 
-ament_export_include_directories(generated/include)
+ament_export_include_directories(
+	include
+	generated/include
+)
 
 ###########
 ## Build ##
 ###########
 
-file(GLOB GENERATED_SOURCE_FILES generated/src/*.cpp)
-
-add_executable(pilot_ros_bridge
-	${GENERATED_SOURCE_FILES}
-	src/pilot_ros_bridge_node.cpp
+link_directories(
+	/opt/neobotix/pilot-core/lib
+	/opt/neobotix/pilot-gtkgui/lib
 )
 
-ament_target_dependencies(pilot_ros_bridge ${dependencies})
+file(GLOB GENERATED_SOURCE_FILES generated/src/*.cpp)
 
-include_directories(
+add_library(pilot_ros_bridge SHARED
+	${GENERATED_SOURCE_FILES}
+	src/ROS_Bridge.cpp
+)
+
+target_include_directories(pilot_ros_bridge PUBLIC
+	include
 	generated/include
 	/opt/neobotix/pilot-core/include
 	/opt/neobotix/pilot-gtkgui/include
 )
 
-link_directories(
-	/opt/neobotix/pilot-core/lib
-	/opt/neobotix/pilot-gtkgui/lib
+target_link_libraries(pilot_ros_bridge
+	pilot_kinematics_bicycle
+	pilot_kinematics_differential
+	pilot_kinematics_mecanum
+	pilot_kinematics_omnidrive
+	pilot_kinematics
+	pilot_core
+	vnx_base
 )
+
+add_executable(pilot_ros_bridge_node
+	src/pilot_ros_bridge_node.cpp
+)
+
+ament_target_dependencies(pilot_ros_bridge ${dependencies})
 
 ament_export_dependencies(pilot_ros_bridge geometry_msgs
 	nav_msgs
@@ -66,24 +84,18 @@ ament_export_dependencies(pilot_ros_bridge geometry_msgs
 	trajectory_msgs
 	visualization_msgs
 	rclcpp
-  tf2_ros)
-
-target_link_libraries(pilot_ros_bridge
-	/opt/neobotix/pilot-core/lib/libpilot_kinematics_differential.so
-	/opt/neobotix/pilot-core/lib/libvnx_base.so
-	/opt/neobotix/pilot-core/lib/libpilot_core.so
-	/opt/neobotix/pilot-core/lib/libpilot_kinematics.so
+	tf2_ros
 )
 
-SET(CMAKE_EXE_LINKER_FLAGS 
-          "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,/opt/neobotix/pilot-core/lib")
+target_link_libraries(pilot_ros_bridge_node
+	pilot_ros_bridge
+)
 
-install(TARGETS pilot_ros_bridge 
-DESTINATION lib/${PROJECT_NAME}
-	)
-
-install(DIRECTORY launch config DESTINATION share/pilot_ros_bridge)
+install(TARGETS pilot_ros_bridge DESTINATION lib/${PROJECT_NAME})
+install(TARGETS pilot_ros_bridge_node DESTINATION bin/${PROJECT_NAME})
+install(DIRECTORY launch config DESTINATION share/${PROJECT_NAME})
 
 ament_export_libraries(pilot_ros_bridge)
 
 ament_package()
+

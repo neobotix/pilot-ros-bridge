@@ -6,7 +6,7 @@
 	</node>
 
 	<!-- start node -->
-	<node pkg="pilot_ros_bridge" exec="pilot_ros_bridge" name="pilot_ros_bridge">
+	<node pkg="pilot_ros_bridge" exec="pilot_ros_bridge_node" name="pilot_ros_bridge_node">
 
 		<param name="pilot_node" value="$(env HOME)/pilot/.pilot_main.sock"/>
 

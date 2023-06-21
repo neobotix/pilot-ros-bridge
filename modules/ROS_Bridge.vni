@@ -1,57 +1,42 @@
 package pilot.ros_bridge;
 
-module Bridge {
+
+module ROS_Bridge {
 	
-	vector<vnx.TopicPtr> export_tf;							// pilot tf topics to export
-	
-	vector<pair<pair<string, string>, vnx.TopicPtr>> import_map;	// [[ROS topic, ROS type] => Pilot topic]
-	
-	vector<pair<vnx.TopicPtr, string>> export_map;					// [Pilot topic => ROS topic]
-	
+	vector<vnx.TopicPtr> export_tf;                                         // pilot tf topics to export
+	vector<pair<pair<string, string>, vnx.TopicPtr>> import_map;            // [[ROS topic, ROS type] => Pilot topic]
+	vector<pair<vnx.TopicPtr, string>> export_map;                          // [Pilot topic => ROS topic]
+	vector<vnx.TopicPtr> pilot_topics;                                      // additional Pilot topics
+
 	string base_frame = "base_link";
 	string odom_frame = "odom";
 	string map_frame = "map";
-	
+	string platform_interface_server = "PlatformInterface";
+
 	int max_queue_ms_vnx = 100;
-	
 	int max_publish_queue_ros = 1;
 	int max_subscribe_queue_ros = 1;
-	
-	
+
 	void handle(automy.basic.Transform3D sample);
-	
 	void handle(pilot.Path2D sample);
-	
 	void handle(pilot.Pose2D sample);
-	
 	void handle(pilot.PoseArray2D sample);
-	
 	void handle(pilot.Odometry sample);
-	
 	void handle(pilot.LaserScan sample);
-	
 	void handle(pilot.CostMapData sample);
-	
 	void handle(pilot.OccupancyMapData sample);
-	
 	void handle(pilot.RoadMapData sample);
-
 	void handle(pilot.SystemState sample);
-
 	void handle(pilot.BatteryState sample);
-
+	void handle(pilot.PowerState sample);
 	void handle(pilot.EmergencyState sample);
-
+	void handle(pilot.RelayBoardData sample);
 	void handle(pilot.IOBoardData sample);
-
 	void handle(pilot.USBoardData sample);
-
 	void handle(pilot.PlatformInfo sample);
-	
+	void handle(pilot.kinematics.bicycle.DriveState sample);
 	void handle(pilot.kinematics.differential.DriveState sample);
-	
 	void handle(pilot.kinematics.mecanum.DriveState sample);
-	
 	void handle(pilot.kinematics.omnidrive.DriveState sample);
 	
 }

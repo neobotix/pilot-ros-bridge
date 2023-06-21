@@ -14,6 +14,7 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>neo_msgs</build_depend>
+  <build_depend>neo_srvs</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>roscpp</build_depend>

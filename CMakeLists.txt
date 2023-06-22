@@ -92,7 +92,7 @@ target_link_libraries(pilot_ros_bridge_node
 )
 
 install(TARGETS pilot_ros_bridge DESTINATION lib/${PROJECT_NAME})
-install(TARGETS pilot_ros_bridge_node DESTINATION bin/${PROJECT_NAME})
+install(TARGETS pilot_ros_bridge_node DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY launch config DESTINATION share/${PROJECT_NAME})
 
 ament_export_libraries(pilot_ros_bridge)

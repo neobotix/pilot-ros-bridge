@@ -23,16 +23,15 @@ int main(int argc, char** argv)
 	// initialize VNX
 	vnx::init("pilot_ros_bridge_node", 0, nullptr);
 
-	std::string pilot_node;
-	std::string pilot_config;
-	{
-		ros::NodeHandle nh_private("~");
-		nh_private.param<std::string>("pilot_node", pilot_node, "localhost:5555");
-		nh_private.param<std::string>("pilot_config", pilot_config, "config/default/generic/");
-	}
-	vnx::read_config_tree(pilot_config);
 
 	std::shared_ptr<ros::NodeHandle> nh = std::make_shared<ros::NodeHandle>("pilot_ros_bridge_node");
+
+	std::string pilot_node;
+	std::string pilot_config;
+	nh->param<std::string>("pilot_node", pilot_node, "localhost:5555");
+	nh->param<std::string>("pilot_config", pilot_config, "config/default/generic/");
+
+	vnx::read_config_tree(pilot_config);
 
 	{
 		vnx::Handle<vnx::Terminal> module = new vnx::Terminal("Terminal");

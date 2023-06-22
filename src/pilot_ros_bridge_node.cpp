@@ -26,14 +26,14 @@ int main(int argc, char** argv)
 	std::string pilot_node;
 	std::string pilot_config;
 
-  std::shared_ptr<rclcpp::Node> nh = std::make_shared<rclcpp::Node>("pilot_ros_bridge_node");
+	std::shared_ptr<rclcpp::Node> nh = std::make_shared<rclcpp::Node>("pilot_ros_bridge_node");
 
-  nh->declare_parameter<std::string>("pilot_node", "localhost:5555");
-  nh->declare_parameter<std::string>("pilot_config", "config/default/generic/");
-  nh->get_parameter<std::string>("pilot_node", pilot_node);
-  nh->get_parameter<std::string>("pilot_config", pilot_config);
+	nh->declare_parameter<std::string>("pilot_node", "localhost:5555");
+	nh->declare_parameter<std::string>("pilot_config", "config/default/generic/");
+	nh->get_parameter<std::string>("pilot_node", pilot_node);
+	nh->get_parameter<std::string>("pilot_config", pilot_config);
 	
-  vnx::read_config_tree(pilot_config);
+	vnx::read_config_tree(pilot_config);
 
 	{
 		vnx::Handle<vnx::Terminal> module = new vnx::Terminal("Terminal");

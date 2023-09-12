@@ -30,14 +30,18 @@
 		["local_planner.target_pose",			"/local_planner/target_pose"],
 		["local_planner.predicted_pose",		"/local_planner/predicted_pose"],
 		["platform.battery_state",				"/battery_state"],
+		["platform.relay_board_data",			"/relayboard_v2/state"],
 		["platform.io_board_data",				"/io_state"],
 		["platform.us_board_data",				"/us_state"],
 		["platform.emergency_state",			"/emergency_state"],
-		["platform.system_state",				"/relayboard_v2/state"],
 	],
 	"import_map": [
 		[["/cmd_vel", "geometry_msgs/Twist"],							"platform.velocity_cmd"],
 		[["/initialpose", "geometry_msgs/PoseWithCovarianceStamped"],	"navigation.initial_pose"],
 		[["/move_base_simple/goal", "geometry_msgs/PoseStamped"],		"navigation.new_goal_pose"]
+	],
+	"pilot_topics": [
+		"platform.power_state",
+		"platform.system_state"
 	]
 }

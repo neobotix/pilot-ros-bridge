@@ -19,7 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 	 std_msgs
 	 sensor_msgs
 	 trajectory_msgs
- )
+)
 
 #######################################
 ## Declare ROS messages and services ##
@@ -40,21 +40,28 @@ find_package(catkin REQUIRED COMPONENTS
 ###################################
 
 catkin_package(
-    CATKIN_DEPENDS roscpp std_msgs tf nav_msgs sensor_msgs trajectory_msgs
-    INCLUDE_DIRS generated/include
+	CATKIN_DEPENDS nav_msgs neo_msgs neo_srvs roscpp tf std_msgs sensor_msgs trajectory_msgs
+	INCLUDE_DIRS include generated/include
 )
 
 ###########
 ## Build ##
 ###########
 
+link_directories(
+	/opt/neobotix/pilot-core/lib
+	/opt/neobotix/pilot-gtkgui/lib
+)
+
 file(GLOB GENERATED_SOURCE_FILES generated/src/*.cpp)
 
 add_library(pilot_ros_bridge SHARED
 	${GENERATED_SOURCE_FILES}
+	src/ROS_Bridge.cpp
 )
 
-include_directories(
+target_include_directories(pilot_ros_bridge PUBLIC
+	include
 	generated/include
 	/opt/neobotix/pilot-core/include
 	/opt/neobotix/pilot-gtkgui/include
@@ -62,16 +69,26 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 )
 
-link_directories(
-	/opt/neobotix/pilot-core/lib
-	/opt/neobotix/pilot-gtkgui/lib
+add_dependencies(pilot_ros_bridge ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(pilot_ros_bridge
+	pilot_kinematics_bicycle
+	pilot_kinematics_differential
+	pilot_kinematics_mecanum
+	pilot_kinematics_omnidrive
+	pilot_kinematics
+	pilot_core
+	vnx_base
+	${catkin_LIBRARIES}
 )
 
-add_executable(pilot_ros_bridge_node src/pilot_ros_bridge_node.cpp)
+add_executable(pilot_ros_bridge_node
+	src/pilot_ros_bridge_node.cpp
+)
 
-add_dependencies(pilot_ros_bridge_node ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(pilot_ros_bridge_node pilot_ros_bridge pilot_kinematics_differential pilot_kinematics pilot_core vnx_base ${catkin_LIBRARIES})
+target_link_libraries(pilot_ros_bridge_node
+	pilot_ros_bridge
+)
 
 
 #############

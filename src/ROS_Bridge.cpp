@@ -531,11 +531,13 @@ void ROS_Bridge::handle(std::shared_ptr<const RoadMapData> value){
 
 
 void ROS_Bridge::handle(std::shared_ptr<const kinematics::bicycle::DriveState> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
 	// TODO
 }
 
 
 void ROS_Bridge::handle(std::shared_ptr<const kinematics::differential::DriveState> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
 	auto out = std::make_shared<sensor_msgs::msg::JointState>();
 	out->header.stamp = pilot_to_ros_time(value->time);
 	out->name.resize(2);
@@ -557,6 +559,7 @@ void ROS_Bridge::handle(std::shared_ptr<const kinematics::differential::DriveSta
 
 
 void ROS_Bridge::handle(std::shared_ptr<const kinematics::mecanum::DriveState> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
 	auto out = std::make_shared<sensor_msgs::msg::JointState>();
 	out->header.stamp = pilot_to_ros_time(value->time);
 	out->name.resize(4);
@@ -586,6 +589,7 @@ void ROS_Bridge::handle(std::shared_ptr<const kinematics::mecanum::DriveState> v
 
 
 void ROS_Bridge::handle(std::shared_ptr<const kinematics::omnidrive::DriveState> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
 	auto out = std::make_shared<sensor_msgs::msg::JointState>();
 	out->header.stamp = pilot_to_ros_time(value->time);
 	out->name.resize(8);

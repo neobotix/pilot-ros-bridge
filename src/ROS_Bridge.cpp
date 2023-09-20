@@ -740,7 +740,11 @@ void ROS_Bridge::export_publish(std::shared_ptr<T> sample, vnx::TopicPtr pilot_t
 		const std::string ros_topic = entry->second + (sub_topic.empty() ? "" : "/") + sub_topic;
 		auto &publisher = export_publishers[ros_topic];
 		if(!publisher) {
-			publisher = nh->create_publisher<T>(ros_topic, rclcpp::QoS(rclcpp::KeepLast(max_publish_queue_ros)));
+			if (ros_topic != "/map") {
+				publisher = nh->create_publisher<T>(ros_topic, rclcpp::QoS(rclcpp::KeepLast(max_publish_queue_ros)));
+			} else {
+				publisher = nh->create_publisher<T>(ros_topic, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+		 	}
 		}
 		if(auto publisher_ = std::dynamic_pointer_cast<rclcpp::Publisher<T>>(publisher)){
 			publisher_->publish(*sample);

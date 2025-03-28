@@ -248,10 +248,24 @@ void ROS_Bridge::handle(std::shared_ptr<const BatteryState> value){
 	out->header.stamp = pilot_to_ros_time(value->time);
 
 	out->voltage = value->voltage;
-	out->current = value->current;
+	out->current = NAN;
+	if(m_power_state && m_power_state->is_charging){
+		out->current = m_power_state->charging_current;
+	}else if(value->current){
+		out->current = *value->current;
+	}
 	out->charge = NAN;
+	if(value->charge){
+		out->charge = (*value->charge) / 3600.0;
+	}
 	out->capacity = NAN;
+	if(value->capacity){
+		out->capacity = (*value->capacity) / 3600.0;
+	}
 	out->design_capacity = NAN;
+	if(value->design_capacity){
+		out->design_capacity = (*value->design_capacity) / 3600.0;
+	}
 	out->percentage = value->remaining;
 	out->power_supply_status = sensor_msgs::msg::BatteryState::POWER_SUPPLY_STATUS_UNKNOWN;
 	if(power_state){

@@ -72,11 +72,11 @@ target_include_directories(pilot_ros_bridge PUBLIC
 add_dependencies(pilot_ros_bridge ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(pilot_ros_bridge
-	pilot_kinematics_bicycle
-	pilot_kinematics_differential
-	pilot_kinematics_mecanum
-	pilot_kinematics_omnidrive
-	pilot_kinematics
+	pilot_kinematics_bicycle_interface
+	pilot_kinematics_differential_interface
+	pilot_kinematics_mecanum_interface
+	pilot_kinematics_omnidrive_interface
+	pilot_kinematics_interface
 	pilot_core
 	vnx_base
 	${catkin_LIBRARIES}

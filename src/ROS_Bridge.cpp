@@ -249,8 +249,8 @@ void ROS_Bridge::handle(std::shared_ptr<const BatteryState> value){
 
 	out->voltage = value->voltage;
 	out->current = NAN;
-	if(m_power_state && m_power_state->is_charging){
-		out->current = m_power_state->charging_current;
+	if(power_state && power_state->is_charging){
+		out->current = power_state->charging_current;
 	}else if(value->current){
 		out->current = *value->current;
 	}

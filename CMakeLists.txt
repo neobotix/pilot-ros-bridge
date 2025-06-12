@@ -17,10 +17,12 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(diagnostic_msgs REQUIRED)
 find_package(std_srvs)
 
 set(dependencies
 	geometry_msgs
+	diagnostic_msgs
 	std_srvs
 	nav_msgs
 	neo_msgs2

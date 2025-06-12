@@ -14,8 +14,13 @@
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <nav_msgs/msg/path.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+#include <trajectory_msgs/msg/joint_trajectory.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
+#include <neo_msgs2/msg/localization_status.hpp>
+#include <neo_msgs2/msg/platform_info.hpp>
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
 
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -557,7 +562,6 @@ void ROS_Bridge::handle(std::shared_ptr<const kinematics::differential::DriveSta
 	export_publish(out);
 }
 
-
 void ROS_Bridge::handle(std::shared_ptr<const kinematics::mecanum::DriveState> value){
 	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
 	auto out = std::make_shared<sensor_msgs::msg::JointState>();
@@ -587,7 +591,6 @@ void ROS_Bridge::handle(std::shared_ptr<const kinematics::mecanum::DriveState> v
 	export_publish(out);
 }
 
-
 void ROS_Bridge::handle(std::shared_ptr<const kinematics::omnidrive::DriveState> value){
 	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
 	auto out = std::make_shared<sensor_msgs::msg::JointState>();
@@ -595,14 +598,14 @@ void ROS_Bridge::handle(std::shared_ptr<const kinematics::omnidrive::DriveState>
 	out->name.resize(8);
 	out->position.resize(8);
 	out->velocity.resize(8);
-	out->name[0] = "mpo_700_wheel_front_left_joint";
-	out->name[1] = "mpo_700_caster_front_left_joint";
-	out->name[2] = "mpo_700_wheel_back_left_joint";
-	out->name[3] = "mpo_700_caster_back_left_joint";
-	out->name[4] = "mpo_700_wheel_back_right_joint";
-	out->name[5] = "mpo_700_caster_back_right_joint";
-	out->name[6] = "mpo_700_wheel_front_right_joint";
-	out->name[7] = "mpo_700_caster_front_right_joint";
+	out->name[0] = "wheel_front_left_joint";
+	out->name[1] = "caster_front_left_joint";
+	out->name[2] = "wheel_back_left_joint";
+	out->name[3] = "caster_back_left_joint";
+	out->name[4] = "wheel_back_right_joint";
+	out->name[5] = "caster_back_right_joint";
+	out->name[6] = "wheel_front_right_joint";
+	out->name[7] = "caster_front_right_joint";
 	out->position[0] = value->drive_pos.get(kinematics::position_code_e::FRONT_LEFT);
 	out->position[1] = value->steer_pos.get(kinematics::position_code_e::FRONT_LEFT);
 	out->position[2] = value->drive_pos.get(kinematics::position_code_e::BACK_LEFT);
@@ -633,6 +636,199 @@ void ROS_Bridge::handle(std::shared_ptr<const kinematics::omnidrive::DriveState>
 	export_publish(out);
 }
 
+// Implementing for only omnidrive - needs to be expanded for other kinematics
+void ROS_Bridge::handle(std::shared_ptr<const kinematics::omnidrive::DriveCmd> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
+	auto out = std::make_shared<trajectory_msgs::msg::JointTrajectory>();
+	out->header.stamp = pilot_to_ros_time(value->time);
+	out->joint_names.resize(8);
+	out->points.resize(1);
+	out->points[0].positions.resize(8);
+	out->points[0].velocities.resize(8);
+	out->joint_names[0] = "wheel_front_left_joint";
+	out->joint_names[1] = "caster_front_left_joint";
+	out->joint_names[2] = "wheel_back_left_joint";
+	out->joint_names[3] = "caster_back_left_joint";
+	out->joint_names[4] = "wheel_back_right_joint";
+	out->joint_names[5] = "caster_back_right_joint";
+	out->joint_names[6] = "wheel_front_right_joint";
+	out->joint_names[7] = "caster_front_right_joint";
+	out->points[0].positions[0] = 0.0;
+	out->points[0].positions[1] = value->steer_pos.get(kinematics::position_code_e::FRONT_LEFT);
+	out->points[0].positions[2] = 0.0;
+	out->points[0].positions[3] = value->steer_pos.get(kinematics::position_code_e::BACK_LEFT);
+	out->points[0].positions[4] = 0.0;
+	out->points[0].positions[5] = value->steer_pos.get(kinematics::position_code_e::BACK_RIGHT);
+	out->points[0].positions[6] = 0.0;
+	out->points[0].positions[7] = value->steer_pos.get(kinematics::position_code_e::FRONT_RIGHT);
+	out->points[0].velocities[0] = value->drive_vel.get(kinematics::position_code_e::FRONT_LEFT);
+	out->points[0].velocities[1] = 0.0;
+	out->points[0].velocities[2] = value->drive_vel.get(kinematics::position_code_e::BACK_LEFT);
+	out->points[0].velocities[3] = 0.0;
+	out->points[0].velocities[4] = value->drive_vel.get(kinematics::position_code_e::BACK_RIGHT);
+	out->points[0].velocities[5] = 0.0;
+	out->points[0].velocities[6] = value->drive_vel.get(kinematics::position_code_e::FRONT_RIGHT);
+	out->points[0].velocities[7] = 0.0;
+	export_publish(out);
+}
+
+void ROS_Bridge::handle(std::shared_ptr<const VelocityCmd> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
+	auto out = std::make_shared<geometry_msgs::msg::TwistStamped>();
+	out->header.stamp = pilot_to_ros_time(value->time);
+	out->twist.linear.x = value->linear[0];
+	out->twist.linear.y = value->linear[1];
+	out->twist.linear.z = 0.0;
+	out->twist.angular.x = 0.0;
+	out->twist.angular.y = 0.0;
+	out->twist.angular.z = value->angular[2];
+	export_publish(out);
+}
+
+void ROS_Bridge::handle(std::shared_ptr<const LocalizationStatus> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
+	auto out = std::make_shared<neo_msgs2::msg::LocalizationStatus>();
+
+	// Populate the data
+	out->header.stamp = pilot_to_ros_time(value->time);
+    switch (value->mode) {
+        case localization_mode_e::NONE:
+            out->mode = "NONE";
+            break;
+        case localization_mode_e::NO_MAP:
+            out->mode = "NO_MAP";
+            break;
+        case localization_mode_e::NO_INPUT:
+            out->mode = "NO_INPUT";
+            break;
+        case localization_mode_e::NO_ODOMETRY:
+            out->mode = "NO_ODOMETRY";
+            break;
+        case localization_mode_e::LOST:
+            out->mode = "LOST";
+            break;
+        case localization_mode_e::INITIALIZING:
+            out->mode = "INITIALIZING";
+            break;
+        case localization_mode_e::DEAD_RECKONING:
+            out->mode = "DEAD_RECKONING";
+            break;
+        case localization_mode_e::MODE_1D:
+            out->mode = "MODE_1D";
+            break;
+        case localization_mode_e::MODE_1D_YAW:
+            out->mode = "MODE_1D_YAW";
+            break;
+        case localization_mode_e::MODE_2D:
+            out->mode = "MODE_2D";
+            break;
+        case localization_mode_e::MODE_2D_YAW:
+            out->mode = "MODE_2D_YAW";
+            break;
+        default:
+            out->mode = "UNKNOWN"; // Fallback for any unhandled or new enum values
+            break;
+    }
+
+    // Resizing it only for 2 lasers
+    out->sensors.resize(2);
+    for (const std::string& sensor_name : value->sensors) {
+        out->sensors.push_back(sensor_name);
+    }
+    out->update_rate = value->update_rate;
+    out->num_points = value->num_points;
+    out->num_points_total = value->num_points_total;
+    
+    // Resize and copy std_dev
+    out->std_dev.resize(value->std_dev.size());
+    for (unsigned int i = 0; i < value->std_dev.size(); ++i) {
+        out->std_dev[i] = value->std_dev[i];
+    }
+    out->score = value->score;
+
+	export_publish(out);
+}
+
+void ROS_Bridge::handle(std::shared_ptr<const PlatformInfo> value) {
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
+	auto out = std::make_shared<neo_msgs2::msg::PlatformInfo>();
+	switch (value->type) {
+        case platform_type_e::MP_400:
+            out->platform_type = "MP_400";
+            break;
+        case platform_type_e::MP_500:
+            out->platform_type = "MP_500";
+            break;
+        case platform_type_e::MPO_500:
+            out->platform_type = "MPO_500";
+            break;
+        case platform_type_e::MPO_700:
+            out->platform_type = "MPO_700";
+            break;
+        case platform_type_e::ROX_DIFF:
+            out->platform_type = "ROX_DIFF";
+            break;
+        case platform_type_e::ROX_TRIKE:
+            out->platform_type = "ROX_TRIKE";
+            break;
+        case platform_type_e::ROX_MECA:
+            out->platform_type = "ROX_MECA";
+            break;
+        case platform_type_e::ROX_ARGO:
+            out->platform_type = "ROX_ARGO";
+            break;
+        default:
+            // This case handles any values not explicitly listed.
+            // It's crucial for robustness if the enum gets new values in the future.
+            out->platform_type = "UNKNOWN_PLATFORM_TYPE";
+            break;
+    }
+	out->name = value->name;
+	out->serial = value->serial;
+	out->date = pilot_to_ros_time(value->date_of_manufacture);
+	export_publish(out);
+}
+
+void ROS_Bridge::handle(std::shared_ptr<const vnx::LogMsg> value) {
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
+    auto out = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+
+    switch (value->level) {
+        case vnx::LogMsg::ERROR:
+            out->level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+            break;
+        case vnx::LogMsg::WARN:
+            out->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+            break;
+        case vnx::LogMsg::INFO:
+            out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+            break;
+        case vnx::LogMsg::DEBUG:
+            out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+            break;
+        default:
+            out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+            break;
+    }
+
+    out->name = value->process + "/" + value->module;
+
+    out->message = value->message;
+
+    out->hardware_id = value->process; // Or leave empty: out->hardware_id = "";
+
+    diagnostic_msgs::msg::KeyValue kv_time;
+    kv_time.key = "vnx_time";
+    kv_time.value = std::to_string(value->time); // Convert long to string
+    out->values.push_back(kv_time);
+
+    diagnostic_msgs::msg::KeyValue kv_display_level;
+    kv_display_level.key = "vnx_display_level";
+    kv_display_level.value = std::to_string(value->display_level); // Convert int to string
+    out->values.push_back(kv_display_level);
+
+    export_publish(out);
+}
 
 void ROS_Bridge::handle_twist(std::shared_ptr<const geometry_msgs::msg::Twist> twist, const std::string& topic_name){
 	auto out = VelocityCmd::create();

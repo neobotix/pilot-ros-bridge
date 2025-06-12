@@ -10,6 +10,7 @@
 #include <pilot/EmergencyState.hxx>
 #include <pilot/IOBoardData.hxx>
 #include <pilot/LaserScan.hxx>
+#include <pilot/LocalizationStatus.hxx>
 #include <pilot/OccupancyMapData.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/Path2D.hxx>
@@ -21,10 +22,13 @@
 #include <pilot/RoadMapData.hxx>
 #include <pilot/SystemState.hxx>
 #include <pilot/USBoardData.hxx>
+#include <pilot/VelocityCmd.hxx>
 #include <pilot/kinematics/bicycle/DriveState.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <pilot/kinematics/mecanum/DriveState.hxx>
+#include <pilot/kinematics/omnidrive/DriveCmd.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>
+#include <vnx/LogMsg.hxx>
 #include <vnx/Module.h>
 #include <vnx/ModuleInterface_vnx_get_config.hxx>
 #include <vnx/ModuleInterface_vnx_get_config_return.hxx>
@@ -370,6 +374,9 @@ void ROS_BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value)
 			case 0x865aafd7c578368ull:
 				handle(std::static_pointer_cast<const ::pilot::LaserScan>(_value));
 				return;
+			case 0xbfb4b9acbe38189cull:
+				handle(std::static_pointer_cast<const ::pilot::LocalizationStatus>(_value));
+				return;
 			case 0xcdf63494e3518601ull:
 				handle(std::static_pointer_cast<const ::pilot::OccupancyMapData>(_value));
 				return;
@@ -403,6 +410,9 @@ void ROS_BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value)
 			case 0x4850604e2930c0a0ull:
 				handle(std::static_pointer_cast<const ::pilot::USBoardData>(_value));
 				return;
+			case 0x85d77eedc4d13747ull:
+				handle(std::static_pointer_cast<const ::pilot::VelocityCmd>(_value));
+				return;
 			case 0x5c1d7427a54840d3ull:
 				handle(std::static_pointer_cast<const ::pilot::kinematics::bicycle::DriveState>(_value));
 				return;
@@ -412,8 +422,14 @@ void ROS_BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value)
 			case 0x746ce8edadd78a68ull:
 				handle(std::static_pointer_cast<const ::pilot::kinematics::mecanum::DriveState>(_value));
 				return;
+			case 0x236d35de80a05a2aull:
+				handle(std::static_pointer_cast<const ::pilot::kinematics::omnidrive::DriveCmd>(_value));
+				return;
 			case 0x735822e6960c247ull:
 				handle(std::static_pointer_cast<const ::pilot::kinematics::omnidrive::DriveState>(_value));
+				return;
+			case 0x2a13f6d072f9b852ull:
+				handle(std::static_pointer_cast<const ::vnx::LogMsg>(_value));
 				return;
 			default:
 				_type_code = _type_code->super;

@@ -11,6 +11,7 @@
 #include <pilot/EmergencyState.hxx>
 #include <pilot/IOBoardData.hxx>
 #include <pilot/LaserScan.hxx>
+#include <pilot/LocalizationStatus.hxx>
 #include <pilot/OccupancyMapData.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/Path2D.hxx>
@@ -22,10 +23,13 @@
 #include <pilot/RoadMapData.hxx>
 #include <pilot/SystemState.hxx>
 #include <pilot/USBoardData.hxx>
+#include <pilot/VelocityCmd.hxx>
 #include <pilot/kinematics/bicycle/DriveState.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <pilot/kinematics/mecanum/DriveState.hxx>
+#include <pilot/kinematics/omnidrive/DriveCmd.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>
+#include <vnx/LogMsg.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
 
@@ -102,6 +106,10 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::differential::DriveState> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::mecanum::DriveState> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::kinematics::omnidrive::DriveState> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::kinematics::omnidrive::DriveCmd> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::VelocityCmd> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::LocalizationStatus> _value) {}
+	virtual void handle(std::shared_ptr<const ::vnx::LogMsg> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;

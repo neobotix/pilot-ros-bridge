@@ -9,6 +9,7 @@
 #include <pilot/EmergencyState.hxx>
 #include <pilot/IOBoardData.hxx>
 #include <pilot/LaserScan.hxx>
+#include <pilot/LocalizationStatus.hxx>
 #include <pilot/OccupancyMapData.hxx>
 #include <pilot/Odometry.hxx>
 #include <pilot/Path2D.hxx>
@@ -20,10 +21,13 @@
 #include <pilot/RoadMapData.hxx>
 #include <pilot/SystemState.hxx>
 #include <pilot/USBoardData.hxx>
+#include <pilot/VelocityCmd.hxx>
 #include <pilot/kinematics/bicycle/DriveState.hxx>
 #include <pilot/kinematics/differential/DriveState.hxx>
 #include <pilot/kinematics/mecanum/DriveState.hxx>
+#include <pilot/kinematics/omnidrive/DriveCmd.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>
+#include <vnx/LogMsg.hxx>
 #include <vnx/Module.h>
 #include <vnx/ModuleInterface_vnx_get_config.hxx>
 #include <vnx/ModuleInterface_vnx_get_config_return.hxx>

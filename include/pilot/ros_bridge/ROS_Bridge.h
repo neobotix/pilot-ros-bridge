@@ -47,6 +47,11 @@ protected:
 	void handle(std::shared_ptr<const kinematics::differential::DriveState> value) override;
 	void handle(std::shared_ptr<const kinematics::mecanum::DriveState> value) override;
 	void handle(std::shared_ptr<const kinematics::omnidrive::DriveState> value) override;
+	void handle(std::shared_ptr<const kinematics::omnidrive::DriveCmd> value) override;
+	void handle(std::shared_ptr<const VelocityCmd> value) override;
+	void handle(std::shared_ptr<const LocalizationStatus> value) override;
+	void handle(std::shared_ptr<const PlatformInfo> value) override;
+	void handle(std::shared_ptr<const vnx::LogMsg> value) override;
 
 	void handle_twist(std::shared_ptr<const geometry_msgs::msg::Twist> twist, const std::string& topic_name);
 	void handle_pose(std::shared_ptr<const geometry_msgs::msg::PoseStamped> pose, const std::string& topic_name);

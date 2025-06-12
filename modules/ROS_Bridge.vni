@@ -38,5 +38,8 @@ module ROS_Bridge {
 	void handle(pilot.kinematics.differential.DriveState sample);
 	void handle(pilot.kinematics.mecanum.DriveState sample);
 	void handle(pilot.kinematics.omnidrive.DriveState sample);
-	
+	void handle(pilot.kinematics.omnidrive.DriveCmd sample);
+	void handle(pilot.VelocityCmd sample);
+	void handle(pilot.LocalizationStatus sample);
+	void handle(vnx.LogMsg sample);
 }

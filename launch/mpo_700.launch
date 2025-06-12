@@ -10,7 +10,7 @@
 
 		<param name="pilot_node" value="$(env HOME)/pilot/.pilot_main.sock"/>
 
-		<param name="pilot_config" value="$(find-pkg-share pilot_ros_bridge)/config/default/mpo-700/"/>
+		<param name="pilot_config" value="/home/pradheep/pilot-ros2-ws/src/pilot-ros-bridge/config/default/mpo-700/"/>
 	</node>
 
 </launch>

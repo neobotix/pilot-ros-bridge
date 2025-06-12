@@ -52,6 +52,8 @@ protected:
 	void handle(std::shared_ptr<const LocalizationStatus> value) override;
 	void handle(std::shared_ptr<const PlatformInfo> value) override;
 	void handle(std::shared_ptr<const vnx::LogMsg> value) override;
+	void handle(std::shared_ptr<const pilot::Incident> value) override;
+	void handle(std::shared_ptr<const pilot::Event> value) override;
 
 	void handle_twist(std::shared_ptr<const geometry_msgs::msg::Twist> twist, const std::string& topic_name);
 	void handle_pose(std::shared_ptr<const geometry_msgs::msg::PoseStamped> pose, const std::string& topic_name);

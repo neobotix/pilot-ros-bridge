@@ -8,7 +8,9 @@
 #include <pilot/BatteryState.hxx>
 #include <pilot/CostMapData.hxx>
 #include <pilot/EmergencyState.hxx>
+#include <pilot/Event.hxx>
 #include <pilot/IOBoardData.hxx>
+#include <pilot/Incident.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/LocalizationStatus.hxx>
 #include <pilot/OccupancyMapData.hxx>
@@ -368,8 +370,14 @@ void ROS_BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value)
 			case 0x77fc634da8371a8eull:
 				handle(std::static_pointer_cast<const ::pilot::EmergencyState>(_value));
 				return;
+			case 0xd5e665afbb894f5aull:
+				handle(std::static_pointer_cast<const ::pilot::Event>(_value));
+				return;
 			case 0x1ca79bd1e6cc8028ull:
 				handle(std::static_pointer_cast<const ::pilot::IOBoardData>(_value));
+				return;
+			case 0x80c07ca1b021de76ull:
+				handle(std::static_pointer_cast<const ::pilot::Incident>(_value));
 				return;
 			case 0x865aafd7c578368ull:
 				handle(std::static_pointer_cast<const ::pilot::LaserScan>(_value));

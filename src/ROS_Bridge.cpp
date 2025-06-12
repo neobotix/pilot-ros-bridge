@@ -20,6 +20,7 @@
 #include <visualization_msgs/msg/marker_array.hpp>
 #include <neo_msgs2/msg/localization_status.hpp>
 #include <neo_msgs2/msg/platform_info.hpp>
+#include <neo_msgs2/msg/string_stamped.hpp>
 #include <diagnostic_msgs/msg/diagnostic_status.hpp>
 
 #include <tf2/LinearMath/Transform.h>
@@ -828,6 +829,26 @@ void ROS_Bridge::handle(std::shared_ptr<const vnx::LogMsg> value) {
     out->values.push_back(kv_display_level);
 
     export_publish(out);
+}
+
+void ROS_Bridge::handle(std::shared_ptr<const pilot::Incident> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
+	auto out = std::make_shared<neo_msgs2::msg::StringStamped>();
+	out->header.stamp = pilot_to_ros_time(value->time);
+	// ToDo
+	// out->json_string = value->to_log_message();
+
+	export_publish(out);
+}
+
+void ROS_Bridge::handle(std::shared_ptr<const pilot::Event> value){
+	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
+	auto out = std::make_shared<neo_msgs2::msg::StringStamped>();
+	out->header.stamp = pilot_to_ros_time(value->time);
+	// ToDo
+
+	export_publish(out);
+
 }
 
 void ROS_Bridge::handle_twist(std::shared_ptr<const geometry_msgs::msg::Twist> twist, const std::string& topic_name){

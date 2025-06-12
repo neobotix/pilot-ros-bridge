@@ -42,4 +42,6 @@ module ROS_Bridge {
 	void handle(pilot.VelocityCmd sample);
 	void handle(pilot.LocalizationStatus sample);
 	void handle(vnx.LogMsg sample);
+	void handle(pilot.Incident sample);
+	void handle(pilot.Event sample);
 }

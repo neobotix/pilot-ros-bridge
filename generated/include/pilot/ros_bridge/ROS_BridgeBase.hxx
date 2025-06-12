@@ -9,7 +9,9 @@
 #include <pilot/BatteryState.hxx>
 #include <pilot/CostMapData.hxx>
 #include <pilot/EmergencyState.hxx>
+#include <pilot/Event.hxx>
 #include <pilot/IOBoardData.hxx>
+#include <pilot/Incident.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/LocalizationStatus.hxx>
 #include <pilot/OccupancyMapData.hxx>
@@ -110,6 +112,8 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::VelocityCmd> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::LocalizationStatus> _value) {}
 	virtual void handle(std::shared_ptr<const ::vnx::LogMsg> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::Incident> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::Event> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;

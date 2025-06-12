@@ -7,7 +7,9 @@
 #include <pilot/BatteryState.hxx>
 #include <pilot/CostMapData.hxx>
 #include <pilot/EmergencyState.hxx>
+#include <pilot/Event.hxx>
 #include <pilot/IOBoardData.hxx>
+#include <pilot/Incident.hxx>
 #include <pilot/LaserScan.hxx>
 #include <pilot/LocalizationStatus.hxx>
 #include <pilot/OccupancyMapData.hxx>

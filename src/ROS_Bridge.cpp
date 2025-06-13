@@ -694,8 +694,6 @@ void ROS_Bridge::handle(std::shared_ptr<const LocalizationStatus> value){
 	out->header.stamp = pilot_to_ros_time(value->time);
 	out->mode = out->mode = vnx::to_string(value->mode);
 
-	// Resizing it only for 2 lasers
-	out->sensors.resize(2);
 	for (const std::string& sensor_name : value->sensors) {
 		out->sensors.push_back(sensor_name);
 	}
@@ -764,21 +762,13 @@ void ROS_Bridge::handle(std::shared_ptr<const vnx::LogMsg> value) {
 	export_publish(out);
 }
 
-void ROS_Bridge::handle(std::shared_ptr<const pilot::Incident> value){
-	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
-	auto out = std::make_shared<neo_msgs2::msg::StringStamped>();
-	out->header.stamp = pilot_to_ros_time(value->time);
-	// ToDo
-	out->json_string = value->to_log_message();
-
-	export_publish(out);
-}
-
 void ROS_Bridge::handle(std::shared_ptr<const pilot::Event> value){
 	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
 	auto out = std::make_shared<neo_msgs2::msg::StringStamped>();
 	out->header.stamp = pilot_to_ros_time(value->time);
-	// ToDo
+	// If it is empty, then the type is Incidents (?)
+	out->type = value->get_type_name();
+	out->json_string = vnx::to_string(value);
 
 	export_publish(out);
 

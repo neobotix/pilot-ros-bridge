@@ -692,60 +692,23 @@ void ROS_Bridge::handle(std::shared_ptr<const LocalizationStatus> value){
 
 	// Populate the data
 	out->header.stamp = pilot_to_ros_time(value->time);
-    switch (value->mode) {
-        case localization_mode_e::NONE:
-            out->mode = "NONE";
-            break;
-        case localization_mode_e::NO_MAP:
-            out->mode = "NO_MAP";
-            break;
-        case localization_mode_e::NO_INPUT:
-            out->mode = "NO_INPUT";
-            break;
-        case localization_mode_e::NO_ODOMETRY:
-            out->mode = "NO_ODOMETRY";
-            break;
-        case localization_mode_e::LOST:
-            out->mode = "LOST";
-            break;
-        case localization_mode_e::INITIALIZING:
-            out->mode = "INITIALIZING";
-            break;
-        case localization_mode_e::DEAD_RECKONING:
-            out->mode = "DEAD_RECKONING";
-            break;
-        case localization_mode_e::MODE_1D:
-            out->mode = "MODE_1D";
-            break;
-        case localization_mode_e::MODE_1D_YAW:
-            out->mode = "MODE_1D_YAW";
-            break;
-        case localization_mode_e::MODE_2D:
-            out->mode = "MODE_2D";
-            break;
-        case localization_mode_e::MODE_2D_YAW:
-            out->mode = "MODE_2D_YAW";
-            break;
-        default:
-            out->mode = "UNKNOWN"; // Fallback for any unhandled or new enum values
-            break;
-    }
+	out->mode = out->mode = vnx::to_string(value->mode);
 
-    // Resizing it only for 2 lasers
-    out->sensors.resize(2);
-    for (const std::string& sensor_name : value->sensors) {
-        out->sensors.push_back(sensor_name);
-    }
-    out->update_rate = value->update_rate;
-    out->num_points = value->num_points;
-    out->num_points_total = value->num_points_total;
-    
-    // Resize and copy std_dev
-    out->std_dev.resize(value->std_dev.size());
-    for (unsigned int i = 0; i < value->std_dev.size(); ++i) {
-        out->std_dev[i] = value->std_dev[i];
-    }
-    out->score = value->score;
+	// Resizing it only for 2 lasers
+	out->sensors.resize(2);
+	for (const std::string& sensor_name : value->sensors) {
+		out->sensors.push_back(sensor_name);
+	}
+	out->update_rate = value->update_rate;
+	out->num_points = value->num_points;
+	out->num_points_total = value->num_points_total;
+	
+	// Resize and copy std_dev
+	out->std_dev.resize(value->std_dev.size());
+	for (unsigned int i = 0; i < value->std_dev.size(); ++i) {
+		out->std_dev[i] = value->std_dev[i];
+	}
+	out->score = value->score;
 
 	export_publish(out);
 }
@@ -753,37 +716,7 @@ void ROS_Bridge::handle(std::shared_ptr<const LocalizationStatus> value){
 void ROS_Bridge::handle(std::shared_ptr<const PlatformInfo> value) {
 	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
 	auto out = std::make_shared<neo_msgs2::msg::PlatformInfo>();
-	switch (value->type) {
-        case platform_type_e::MP_400:
-            out->platform_type = "MP_400";
-            break;
-        case platform_type_e::MP_500:
-            out->platform_type = "MP_500";
-            break;
-        case platform_type_e::MPO_500:
-            out->platform_type = "MPO_500";
-            break;
-        case platform_type_e::MPO_700:
-            out->platform_type = "MPO_700";
-            break;
-        case platform_type_e::ROX_DIFF:
-            out->platform_type = "ROX_DIFF";
-            break;
-        case platform_type_e::ROX_TRIKE:
-            out->platform_type = "ROX_TRIKE";
-            break;
-        case platform_type_e::ROX_MECA:
-            out->platform_type = "ROX_MECA";
-            break;
-        case platform_type_e::ROX_ARGO:
-            out->platform_type = "ROX_ARGO";
-            break;
-        default:
-            // This case handles any values not explicitly listed.
-            // It's crucial for robustness if the enum gets new values in the future.
-            out->platform_type = "UNKNOWN_PLATFORM_TYPE";
-            break;
-    }
+	out->platform_type = vnx::to_string(value->type);
 	out->name = value->name;
 	out->serial = value->serial;
 	out->date = pilot_to_ros_time(value->date_of_manufacture);
@@ -792,43 +725,43 @@ void ROS_Bridge::handle(std::shared_ptr<const PlatformInfo> value) {
 
 void ROS_Bridge::handle(std::shared_ptr<const vnx::LogMsg> value) {
 	const std::string dont_optimize_away_the_library = vnx::to_string(*value);
-    auto out = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
+	auto out = std::make_shared<diagnostic_msgs::msg::DiagnosticStatus>();
 
-    switch (value->level) {
-        case vnx::LogMsg::ERROR:
-            out->level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-            break;
-        case vnx::LogMsg::WARN:
-            out->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
-            break;
-        case vnx::LogMsg::INFO:
-            out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
-            break;
-        case vnx::LogMsg::DEBUG:
-            out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
-            break;
-        default:
-            out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
-            break;
-    }
+	switch (value->level) {
+		case vnx::LogMsg::ERROR:
+			out->level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+			break;
+		case vnx::LogMsg::WARN:
+			out->level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
+			break;
+		case vnx::LogMsg::INFO:
+			out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+			break;
+		case vnx::LogMsg::DEBUG:
+			out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+			break;
+		default:
+			out->level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+			break;
+	}
 
-    out->name = value->process + "/" + value->module;
+	out->name = value->process + "/" + value->module;
 
-    out->message = value->message;
+	out->message = value->message;
 
-    out->hardware_id = value->process; // Or leave empty: out->hardware_id = "";
+	out->hardware_id = value->process; // Or leave empty: out->hardware_id = "";
 
-    diagnostic_msgs::msg::KeyValue kv_time;
-    kv_time.key = "vnx_time";
-    kv_time.value = std::to_string(value->time); // Convert long to string
-    out->values.push_back(kv_time);
+	diagnostic_msgs::msg::KeyValue kv_time;
+	kv_time.key = "vnx_time";
+	kv_time.value = std::to_string(value->time); // Convert long to string
+	out->values.push_back(kv_time);
 
-    diagnostic_msgs::msg::KeyValue kv_display_level;
-    kv_display_level.key = "vnx_display_level";
-    kv_display_level.value = std::to_string(value->display_level); // Convert int to string
-    out->values.push_back(kv_display_level);
+	diagnostic_msgs::msg::KeyValue kv_display_level;
+	kv_display_level.key = "vnx_display_level";
+	kv_display_level.value = std::to_string(value->display_level); // Convert int to string
+	out->values.push_back(kv_display_level);
 
-    export_publish(out);
+	export_publish(out);
 }
 
 void ROS_Bridge::handle(std::shared_ptr<const pilot::Incident> value){
@@ -836,7 +769,7 @@ void ROS_Bridge::handle(std::shared_ptr<const pilot::Incident> value){
 	auto out = std::make_shared<neo_msgs2::msg::StringStamped>();
 	out->header.stamp = pilot_to_ros_time(value->time);
 	// ToDo
-	// out->json_string = value->to_log_message();
+	out->json_string = value->to_log_message();
 
 	export_publish(out);
 }

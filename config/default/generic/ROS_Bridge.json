@@ -34,6 +34,7 @@
 		["local_planner.target_pose",			"/local_planner/target_pose"],
 		["local_planner.predicted_pose",		"/local_planner/predicted_pose"],
 		["platform.events",						"/events"],
+		["platform.incidents",					"/incidents"],
 		["platform.battery_state",				"/battery_state"],
 		["platform.relay_board_data",			"/relayboard_v2/state"],
 		["platform.info",				        "/platform_info"],

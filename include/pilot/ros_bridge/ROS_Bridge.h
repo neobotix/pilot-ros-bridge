@@ -52,6 +52,7 @@ protected:
 	void handle(std::shared_ptr<const LocalizationStatus> value) override;
 	void handle(std::shared_ptr<const PlatformInfo> value) override;
 	void handle(std::shared_ptr<const vnx::LogMsg> value) override;
+	void handle(std::shared_ptr<const pilot::Incident> value) override;
 	void handle(std::shared_ptr<const pilot::Event> value) override;
 	void handle(std::shared_ptr<const pilot::motors::elmo::MotorState> value) override;
 

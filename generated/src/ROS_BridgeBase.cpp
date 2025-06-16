@@ -30,6 +30,7 @@
 #include <pilot/kinematics/mecanum/DriveState.hxx>
 #include <pilot/kinematics/omnidrive/DriveCmd.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>
+#include <pilot/motors/elmo/MotorState.hxx>
 #include <vnx/LogMsg.hxx>
 #include <vnx/Module.h>
 #include <vnx/ModuleInterface_vnx_get_config.hxx>
@@ -435,6 +436,9 @@ void ROS_BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value)
 				return;
 			case 0x735822e6960c247ull:
 				handle(std::static_pointer_cast<const ::pilot::kinematics::omnidrive::DriveState>(_value));
+				return;
+			case 0xe11ef3449e7d6a81ull:
+				handle(std::static_pointer_cast<const ::pilot::motors::elmo::MotorState>(_value));
 				return;
 			case 0x2a13f6d072f9b852ull:
 				handle(std::static_pointer_cast<const ::vnx::LogMsg>(_value));

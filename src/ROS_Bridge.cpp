@@ -774,6 +774,16 @@ void ROS_Bridge::handle(std::shared_ptr<const pilot::Event> value){
 
 }
 
+void ROS_Bridge::handle(std::shared_ptr<const pilot::motors::elmo::MotorState> value) {
+	// const std::string dont_optimize_away_the_library = vnx::to_string(*value);
+	auto out = std::make_shared<neo_msgs2::msg::StringStamped>();
+	out->header.stamp = pilot_to_ros_time(value->time);
+	out->type = value->get_type_name();
+	out->json_string = vnx::to_string(value);
+
+	export_publish(out);
+}
+
 void ROS_Bridge::handle_twist(std::shared_ptr<const geometry_msgs::msg::Twist> twist, const std::string& topic_name){
 	auto out = VelocityCmd::create();
 	out->time = vnx::get_time_micros();

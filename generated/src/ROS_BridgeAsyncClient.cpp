@@ -29,6 +29,7 @@
 #include <pilot/kinematics/mecanum/DriveState.hxx>
 #include <pilot/kinematics/omnidrive/DriveCmd.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>
+#include <pilot/motors/elmo/MotorState.hxx>
 #include <vnx/LogMsg.hxx>
 #include <vnx/Module.h>
 #include <vnx/ModuleInterface_vnx_get_config.hxx>

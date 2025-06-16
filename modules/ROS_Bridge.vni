@@ -44,4 +44,5 @@ module ROS_Bridge {
 	void handle(vnx.LogMsg sample);
 	void handle(pilot.Incident sample);
 	void handle(pilot.Event sample);
+	void handle(pilot.motors.elmo.MotorState sample);
 }

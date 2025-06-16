@@ -31,6 +31,7 @@
 #include <pilot/kinematics/mecanum/DriveState.hxx>
 #include <pilot/kinematics/omnidrive/DriveCmd.hxx>
 #include <pilot/kinematics/omnidrive/DriveState.hxx>
+#include <pilot/motors/elmo/MotorState.hxx>
 #include <vnx/LogMsg.hxx>
 #include <vnx/Module.h>
 #include <vnx/TopicPtr.hpp>
@@ -114,6 +115,7 @@ protected:
 	virtual void handle(std::shared_ptr<const ::vnx::LogMsg> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::Incident> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::Event> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::motors::elmo::MotorState> _value) {}
 	
 	void vnx_handle_switch(std::shared_ptr<const vnx::Value> _value) override;
 	std::shared_ptr<vnx::Value> vnx_call_switch(std::shared_ptr<const vnx::Value> _method, const vnx::request_id_t& _request_id) override;

@@ -248,6 +248,7 @@ void ROS_Bridge::handle(std::shared_ptr<const BatteryState> value){
 	out->header.stamp = pilot_to_ros_time(value->time);
 
 	out->voltage = value->voltage;
+	out->temperature = value->temperature;
 	out->current = NAN;
 	if(power_state && power_state->is_charging){
 		out->current = power_state->charging_current;
@@ -286,6 +287,7 @@ void ROS_Bridge::handle(std::shared_ptr<const BatteryState> value){
 		out->power_supply_technology = sensor_msgs::msg::BatteryState::POWER_SUPPLY_TECHNOLOGY_LIFE;
 	}
 	out->present = true;
+	out->serial_number = value->serial_number;
 
 	export_publish(out);
 }

@@ -49,7 +49,7 @@ def execution_stage(context: LaunchContext,
              " ", "joint_type:=", joint_type
         ]
 
-        pilot_config_param = "/home/neobotix/rox_workspace/src/pilot-ros-bridge/config/default/" + rox_variant + "/"
+        pilot_config_param = "/home/neobotix/rox_workspace/src/pilot-ros-bridge/config/default/rox/"
 
     else:
         robot_pkg = get_package_share_directory('neo_'+ robot_typ + '-2')

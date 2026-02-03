@@ -26,17 +26,44 @@ def execution_stage(context: LaunchContext,
                     ):
 
     robot_typ = str(robot_type.perform(context))
-    robot_pkg = get_package_share_directory('neo_'+ robot_typ + '-2')
     launch_actions = []
 
-    # Setting up the URDF
-    urdf = os.path.join(robot_pkg,
-        'robot_model',
-        robot_typ + '.urdf.xacro')
+    if robot_typ.startswith("rox-"):
+        robot_pkg = get_package_share_directory('rox_description')
+        urdf = os.path.join(robot_pkg, 'urdf', 'rox.urdf.xacro')
 
-    xacro_args = [
-        "xacro", " ", urdf
-    ]
+        # Extract rox_type (e.g. rox-diff -> diff)
+        try:
+            rox_variant = robot_typ.split('-', 1)[1]
+        except IndexError:
+            # Fallback or error if format is wrong, though user promised format
+             rox_variant = "argo"
+
+        joint_type = "fixed"
+        if rox_variant in ["diff", "trike"]:
+            joint_type = "revolute"
+
+        xacro_args = [
+             "xacro", " ", urdf,
+             " ", "rox_type:=", rox_variant,
+             " ", "joint_type:=", joint_type
+        ]
+
+        pilot_config_param = "/home/neobotix/rox_workspace/src/pilot-ros-bridge/config/default/" + rox_variant + "/"
+
+    else:
+        robot_pkg = get_package_share_directory('neo_'+ robot_typ + '-2')
+
+        # Setting up the URDF
+        urdf = os.path.join(robot_pkg,
+            'robot_model',
+            robot_typ + '.urdf.xacro')
+
+        xacro_args = [
+            "xacro", " ", urdf
+        ]
+
+        pilot_config_param = "/home/neobotix/"+ robot_typ +"_workspace/src/pilot-ros-bridge/config/default/" + robot_typ + "/"
 
     # Start robot state publisher
     start_robot_state_publisher_cmd = Node(
@@ -65,7 +92,7 @@ def execution_stage(context: LaunchContext,
         output='screen',
         parameters=[{
             # Switch the workspace here
-            'pilot_config': "/home/neobotix/"+ robot_typ +"_workspace/src/pilot-ros-bridge/config/default/mpo-700/",
+            'pilot_config': pilot_config_param,
         }],
     )
 

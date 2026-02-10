@@ -31,6 +31,7 @@ module ROS_Bridge {
 	void handle(pilot.PowerState sample);
 	void handle(pilot.EmergencyState sample);
 	void handle(pilot.RelayBoardData sample);
+	void handle(pilot.RelayBoardV3Data sample);
 	void handle(pilot.IOBoardData sample);
 	void handle(pilot.USBoardData sample);
 	void handle(pilot.PlatformInfo sample);

@@ -20,6 +20,7 @@
 #include <pilot/PoseArray2D.hxx>
 #include <pilot/PowerState.hxx>
 #include <pilot/RelayBoardData.hxx>
+#include <pilot/RelayBoardV3Data.hxx>
 #include <pilot/RoadMapData.hxx>
 #include <pilot/SystemState.hxx>
 #include <pilot/USBoardData.hxx>

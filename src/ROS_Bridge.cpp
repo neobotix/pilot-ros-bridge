@@ -5,6 +5,7 @@
 #include <neo_msgs2/msg/io_board.hpp>
 #include <neo_msgs2/msg/us_board_v2.hpp>
 #include <neo_msgs2/msg/relay_board_v2.hpp>
+#include <neo_msgs2/msg/relay_board_v3.hpp>
 #include <neo_msgs2/msg/emergency_stop_state.hpp>
 
 #include <sensor_msgs/msg/battery_state.hpp>
@@ -335,7 +336,6 @@ void ROS_Bridge::handle(std::shared_ptr<const RelayBoardData> value){
 
 	out->header.stamp = pilot_to_ros_time(value->time);
 
-
 	out->temperature = value->ambient_temperature;
 
 	for(int i = 0; i < value->relay_states.size(); ++i) {
@@ -392,7 +392,44 @@ void ROS_Bridge::handle(std::shared_ptr<const RelayBoardData> value){
 
 
 void ROS_Bridge::handle(std::shared_ptr<const RelayBoardV3Data> value){
-	// TODO
+	auto out = std::make_shared<neo_msgs2::msg::RelayBoardV3>();
+	out->time = value->time;
+	out->firmware_version = value->firmware_version;
+	out->uptime = value->uptime;
+	out->ambient_temperature = value->ambient_temperature;
+	for(int i = 0; i < value->relay_states.size(); ++i) {
+		out->relay_states[i] = value->relay_states[i];
+	}
+	for(int i = 0; i < value->digital_input_states.size(); ++i) {
+		out->digital_input_states[i] = value->digital_input_states[i];
+	}
+	for(int i = 0; i < value->keypad_button_states.size(); ++i) {
+		out->keypad_button_states[i] = value->keypad_button_states[i];
+	}
+	out->key_switch_off_state = value->key_switch_off_state;
+	out->release_structure_state = value->release_structure_state;
+	
+	// Iterate over the LED color map and set the corresponding LED state
+	for (const auto& pair: value->led_states) {
+		if (pair.first == led_color_e::RED) {
+			out->led_state.r = pair.second;
+		} else if (pair.first == led_color_e::GREEN) {
+			out->led_state.g = pair.second;
+		} else if (pair.first == led_color_e::BLUE) {
+			out->led_state.b = pair.second;
+		}
+	}
+	
+	std::vector<std::string> system_error;
+	if (system_state)
+	{
+		for(const auto &code : system_state->system_errors){
+			system_error.push_back(code.to_string_value());	
+		}
+	}
+
+	out->system_error = system_error;
+	export_publish(out);
 }
 
 

@@ -391,6 +391,11 @@ void ROS_Bridge::handle(std::shared_ptr<const RelayBoardData> value){
 }
 
 
+void ROS_Bridge::handle(std::shared_ptr<const RelayBoardV3Data> value){
+	// TODO
+}
+
+
 void ROS_Bridge::handle(std::shared_ptr<const IOBoardData> value){
 	auto out = std::make_shared<neo_msgs2::msg::IOBoard>();
 

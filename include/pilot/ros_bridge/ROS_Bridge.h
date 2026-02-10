@@ -38,6 +38,7 @@ protected:
 	void handle(std::shared_ptr<const PowerState> value) override;
 	void handle(std::shared_ptr<const EmergencyState> value) override;
 	void handle(std::shared_ptr<const RelayBoardData> value) override;
+	void handle(std::shared_ptr<const RelayBoardV3Data> value) override;
 	void handle(std::shared_ptr<const IOBoardData> value) override;
 	void handle(std::shared_ptr<const USBoardData> value) override;
 	void handle(std::shared_ptr<const CostMapData> value) override;

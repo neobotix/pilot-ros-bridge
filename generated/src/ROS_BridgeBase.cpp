@@ -18,6 +18,7 @@
 #include <pilot/PoseArray2D.hxx>
 #include <pilot/PowerState.hxx>
 #include <pilot/RelayBoardData.hxx>
+#include <pilot/RelayBoardV3Data.hxx>
 #include <pilot/RoadMapData.hxx>
 #include <pilot/SystemState.hxx>
 #include <pilot/USBoardData.hxx>
@@ -393,6 +394,9 @@ void ROS_BridgeBase::vnx_handle_switch(std::shared_ptr<const vnx::Value> _value)
 				return;
 			case 0x94d1b110c5b3bdcbull:
 				handle(std::static_pointer_cast<const ::pilot::RelayBoardData>(_value));
+				return;
+			case 0x9520c728da2f4f2full:
+				handle(std::static_pointer_cast<const ::pilot::RelayBoardV3Data>(_value));
 				return;
 			case 0xb4bef4b6f7dbfaadull:
 				handle(std::static_pointer_cast<const ::pilot::RoadMapData>(_value));

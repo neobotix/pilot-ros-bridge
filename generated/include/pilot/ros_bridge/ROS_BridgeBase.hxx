@@ -19,6 +19,7 @@
 #include <pilot/PoseArray2D.hxx>
 #include <pilot/PowerState.hxx>
 #include <pilot/RelayBoardData.hxx>
+#include <pilot/RelayBoardV3Data.hxx>
 #include <pilot/RoadMapData.hxx>
 #include <pilot/SystemState.hxx>
 #include <pilot/USBoardData.hxx>
@@ -95,6 +96,7 @@ protected:
 	virtual void handle(std::shared_ptr<const ::pilot::PowerState> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::EmergencyState> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::RelayBoardData> _value) {}
+	virtual void handle(std::shared_ptr<const ::pilot::RelayBoardV3Data> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::IOBoardData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::USBoardData> _value) {}
 	virtual void handle(std::shared_ptr<const ::pilot::PlatformInfo> _value) {}

@@ -1,0 +1,7 @@
+{
+    "export_map+": [
+        [
+            "platform.relay_board_data", "/iva/relayboard_v3/state"
+        ],
+    ]
+}

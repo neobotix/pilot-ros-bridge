@@ -36,7 +36,6 @@
 		["platform.events",						"/iva/events"],
 		["platform.incidents",					"/iva/incidents"],
 		["platform.battery_state",				"/iva/battery_state"],
-		["platform.relay_board_data",			"/iva/relayboard_v2/state"],
 		["platform.info",				        "/iva/platform_info"],
 		["platform.io_board_data",				"/io_state"],
 		["platform.us_board_data",				"/us_state"],

@@ -298,14 +298,8 @@ void ROS_Bridge::handle(std::shared_ptr<const EmergencyState> value){
 	out->header.stamp = pilot_to_ros_time(value->time);
 
 	// assign input (laser, button) specific EM state
-	out->emergency_button_stop = false;
-	out->scanner_stop = false;
-
-	// Scanner stop or EMStop
-	switch (value->code) {
-		case safety_code_e::SCANNER_STOP: out->scanner_stop = true; break;
-		case safety_code_e::EMERGENCY_STOP: out->emergency_button_stop = true; break;
-	}
+	out->emergency_button_stop = (value->codes.find(safety_code_e::EMERGENCY_STOP) != value->codes.end());
+	out->scanner_stop = (value->codes.find(safety_code_e::SCANNER_STOP) != value->codes.end());
 
 	// State of the EMStop
 	switch (value->state) {
